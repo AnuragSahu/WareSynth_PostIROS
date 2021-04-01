@@ -1,6 +1,10 @@
 # Synthetic_warehouse
 Synthetic warehouse development, rendering and applications
 
+## Assets Files
+
+The assets file can be downloaded from <a href="https://drive.google.com/drive/folders/139RCGB8rS_euDu-1-zSx5acT5NrYqBTW?usp=sharing"> Here </a>
+
 # Instructions to generate Layouts
 
 * In order to generate the warehouse along with the front and top layouts just 24 images:
@@ -25,6 +29,6 @@ The scripts here need blender to run, and you need to have the files set up as:
 │   │   ├── blender (executable)
 │   ├── Synthetic_warehouse (This repo)
 │   │   ├── scripts
-│   │   ├── objects
+│   │   ├── objects (assets files)
 |   |   |   ├── primitives
 ```
