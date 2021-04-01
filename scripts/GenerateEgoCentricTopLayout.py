@@ -13,6 +13,12 @@ class GenerateEgoCentricTopLayout(object):
         self.DEBUG = True
         self.annotations = {}
 
+    def get_locations(self, locations):
+        x = locations[1]
+        y = locations[2]
+        z = locations[2]
+        return [x,y,z]
+
     def get_rect(self, x, y, width, height, theta):
         rect = np.array([(-width / 2, -height / 2), (width / 2, -height / 2),
                          (width / 2, height / 2), (-width / 2, height / 2),
@@ -27,18 +33,19 @@ class GenerateEgoCentricTopLayout(object):
         return transformed_rect
 
     def generate_layout_rack(self, img_data, label,locations, dimentions, rotation_y, rack_number):
-        imgs = img_data[0]
-        res = img_data[1]
-        length = img_data[2]
-        width = img_data[3]
+        
+        #print(label,locations, dimentions, rotation_y, rack_number)
+        imgs = img_data
+        res = self. res
+        length = self.length
+        width = self.width
 
+        #print(locations)
         center_x = int(float(locations[0]) / res + width / (2*res))
         # center_x = 256
         # center_y = int(float(locations[1]) / res + length / (2*res))
-        center_y = int(float(locations[1]) / res)
+        center_y = int(float(locations[1]) / res)# + length / (2*res))
         # center_y = 256
-
-        # print("Rack: ", locations[0], center_x)
 
         orient = -1 * float(rotation_y)
 
@@ -48,26 +55,74 @@ class GenerateEgoCentricTopLayout(object):
         # rectangle = get_rect(center_x, center_y, obj_l, obj_w, orient)
         rectangle = self.get_rect(center_x, int(length/res) - center_y, obj_l, obj_w, orient)
 
-        draw = ImageDraw.Draw(imgs[rack_number])
+        draw = ImageDraw.Draw(imgs)
 
-        if (label == "Shel"):
-            draw.polygon([tuple(p) for p in rectangle], fill=255)
-            print(center_x, center_y)
+        if (label == "Shelf"):
+            draw.polygon([tuple(p) for p in rectangle], fill=155)
 
-        imgs[rack_number] = imgs[rack_number].convert('L')
-        return [imgs,res,length, width]
+        imgs = imgs.convert('L')
+        return imgs
+
+    def generate_layout_Box(self, img_data, label,locations, dimentions, rotation_y, rack_number):
+        
+        #print(label,locations, dimentions, rotation_y, rack_number)
+        imgs = img_data
+        res = self. res
+        length = self.length
+        width = self.width
+
+        #print(locations)
+        center_x = int(float(locations[0]) / res + width / (2*res))
+        # center_x = 256
+        # center_y = int(float(locations[1]) / res + length / (2*res))
+        center_y = int(float(locations[1]) / res)# + length / (2*res))
+        # center_y = 256
+
+        orient = -1 * float(rotation_y)
+
+        obj_w = int(float(dimentions[1])/res)
+        obj_l = int(float(dimentions[0])/res)
+
+        rectangle = self.get_rect(center_x, int(length/res) - center_y, obj_l, obj_w, orient)
+
+        draw = ImageDraw.Draw(imgs)
+
+        draw.polygon([tuple(p) for p in rectangle], fill=255)
+
+        imgs = imgs.convert('L')
+        return imgs
 
     def writeLayout(self, annotations,  ID, dump_path):
         self.annotations = annotations
-        shelf_layouts= []
-        box_layouts = []
         min_shelf_number, max_shelf_number = self.get_shelf_range()
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             shelf, boxes = self.get_shelf_and_boxes(shelf_number)
+            #print(len(shelf))
             
-            print(shelf)
-            print(boxes)
-            print("\n\n\n\n\n")
+            # Get the layout of the shelf
+            layout = np.zeros(
+                (int(self.length/self.res), 
+                int(self.width/self.res))
+            )
+            layout = Image.fromarray(layout)
+
+            shelf["object_ego_location"] = self.get_locations(shelf["object_ego_location"])
+
+            shelf_images_data = self.generate_layout_rack(layout, 
+                                                          shelf["object_type"], 
+                                                          shelf["object_ego_location"],
+                                                          shelf["object_dimensions"],
+                                                          shelf["ego_rotation_y"],
+                                                          shelf["shelf_number"])
+            for box in boxes:
+                shelf_images_data = self.generate_layout_Box(shelf_images_data, 
+                                                          box["object_type"], 
+                                                          self.get_locations(box["object_ego_location"]),
+                                                          box["object_dimensions"],
+                                                          box["ego_rotation_y"],
+                                                          box["shelf_number"])
+            
+            im1 = shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
         # self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
     
     def get_shelf_range(self):
