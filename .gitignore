@@ -1,0 +1,13 @@
+# write paths to files to ignore
+
+# pycache file
+**/__pycache__/**
+
+#log files
+./dataGenerationLogs.txt
+
+# Datasets
+datasets/
+objects/
+train_files.txt
+val_files.txt
