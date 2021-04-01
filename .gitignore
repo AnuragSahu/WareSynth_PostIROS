@@ -4,7 +4,7 @@
 **/__pycache__/**
 
 #log files
-./dataGenerationLogs.txt
+dataGenerationLogs.txt
 
 # Datasets
 datasets/
