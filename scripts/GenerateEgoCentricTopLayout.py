@@ -13,6 +13,50 @@ class GenerateEgoCentricTopLayout(object):
         self.DEBUG = True
         self.annotations = {}
 
+    def get_rect(self, x, y, width, height, theta):
+        rect = np.array([(-width / 2, -height / 2), (width / 2, -height / 2),
+                         (width / 2, height / 2), (-width / 2, height / 2),
+                         (-width / 2, -height / 2)])
+
+        R = np.array([[np.cos(theta), -np.sin(theta)],
+                      [np.sin(theta), np.cos(theta)]])
+
+        offset = np.array([x, y])
+        transformed_rect = np.dot(rect, R) + offset
+
+        return transformed_rect
+
+    def generate_layout_rack(self, img_data, label,locations, dimentions, rotation_y, rack_number):
+        imgs = img_data[0]
+        res = img_data[1]
+        length = img_data[2]
+        width = img_data[3]
+
+        center_x = int(float(locations[0]) / res + width / (2*res))
+        # center_x = 256
+        # center_y = int(float(locations[1]) / res + length / (2*res))
+        center_y = int(float(locations[1]) / res)
+        # center_y = 256
+
+        # print("Rack: ", locations[0], center_x)
+
+        orient = -1 * float(rotation_y)
+
+        obj_w = int(float(dimentions[1])/res)
+        obj_l = int(float(dimentions[0])/res)
+
+        # rectangle = get_rect(center_x, center_y, obj_l, obj_w, orient)
+        rectangle = self.get_rect(center_x, int(length/res) - center_y, obj_l, obj_w, orient)
+
+        draw = ImageDraw.Draw(imgs[rack_number])
+
+        if (label == "Shel"):
+            draw.polygon([tuple(p) for p in rectangle], fill=255)
+            print(center_x, center_y)
+
+        imgs[rack_number] = imgs[rack_number].convert('L')
+        return [imgs,res,length, width]
+
     def writeLayout(self, annotations,  ID, dump_path):
         self.annotations = annotations
         shelf_layouts= []
@@ -20,10 +64,11 @@ class GenerateEgoCentricTopLayout(object):
         min_shelf_number, max_shelf_number = self.get_shelf_range()
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             shelf, boxes = self.get_shelf_and_boxes(shelf_number)
-            shelf, boxes = self.calculateCenter(shelf, boxes)
-            shelf_layouts.append(self.getShelfLayout(shelf))
-            box_layouts.append(self.getBoxesLayouts(boxes))
-        self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
+            
+            print(shelf)
+            print(boxes)
+            print("\n\n\n\n\n")
+        # self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
     
     def get_shelf_range(self):
         min_shelf = 99999999
@@ -47,10 +92,10 @@ class GenerateEgoCentricTopLayout(object):
         return [shelf,boxes]
 
     def calculateCenter(self, shelf, boxes):
-        center_x, center_y = shelf["location"][:2]
+        center_x, center_y = shelf["object_location"][:2]
         shelf["center"][:2] = [0,0]
         for box in boxes:
-            box_center_x, box_center_y = box["location"][:2]
+            box_center_x, box_center_y = box["object_location"][:2]
             box["center"] = [float(box_center_x) - float(center_x), float(box_center_y)-float(center_y)]
         return [shelf, boxes]
 
@@ -86,7 +131,7 @@ class GenerateEgoCentricTopLayout(object):
         center_x = int(float(x) / self.res + self.width / (2*self.res))
         center_y = int(float(y) / self.res + self.length / (2*self.res))
         orient = float(annotation["rotation_y"])
-        dimensions = annotation["dimensions"]
+        dimensions = annotation["object_dimensions"]
         obj_w = int(float(dimensions[1])/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
@@ -137,23 +182,4 @@ class GenerateEgoCentricTopLayout(object):
         file_path = dump_path +"top"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
-        # final_layouts_boxes = []
-        # for shelf in range(Constants.MAX_SHELVES):
-        #     #boxes_img_data[0][i] = boxes_img_data[0][i].rotate(180)
-        #     if(shelf >= len(box_layouts)):
-        #         pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
-        #     else:
-        #         pixels = list(box_layouts[shelf].getdata())
-        #         width, height = box_layouts[shelf].size
-        #         pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
-        #         pixels = np.array(pixels)
-        #     if(self.DEBUG):
-        #         cv2.imwrite(filePathManager.getDebugRackLayoutPath("topBox",ID, shelf), pixels)
-        #         filePathManager.updateDebugImageNumber()
-        #     final_layouts_boxes.append(pixels)
-        # final_layouts_boxes = np.array(final_layouts_boxes)
-        # file_path = dump_path +"topBox"+ ID[:-4] + ".npy"
-        # np.save(file_path,final_layouts_boxes)
-    
-        #np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
 generateEgoCentricTopLayout = GenerateEgoCentricTopLayout()
