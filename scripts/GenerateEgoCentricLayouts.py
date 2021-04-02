@@ -43,7 +43,7 @@ class GenerateLayouts(object):
         
         location = np.array([float(loc[0]), float(loc[1]), float(loc[2])])
         #print(loc)
-        print(rot)
+        #print(rot)
         #rotation = mathutils.Euler((float(rot[0]), float(rot[1]), float(rot[2])))
         #R_world2bcam = rotation.to_matrix().transposed()
         #R_world2bcam = np.array(R_world2bcam)

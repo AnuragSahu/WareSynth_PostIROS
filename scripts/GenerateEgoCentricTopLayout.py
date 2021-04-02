@@ -121,6 +121,10 @@ class GenerateEgoCentricTopLayout(object):
                                                           box["object_dimensions"],
                                                           box["ego_rotation_y"],
                                                           box["shelf_number"])
+            #print(shelf["camera_rotation"])                                            
+            if(shelf["camera_rotation"][2] != 4.71238899230957):
+                #print("Here")
+                shelf_images_data = shelf_images_data.transpose(Image.FLIP_LEFT_RIGHT)
             
             im1 = shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
         # self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
