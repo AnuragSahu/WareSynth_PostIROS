@@ -18,6 +18,7 @@ class FilePathManager(object):
         self.anuragAnnotationsPath = self.datasetDumpDirectory + "anuragAnnotations/"
         self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "labels/"
         self.anuragRGBImagesPath = self.anuragAnnotationsPath + "warehouse/"
+        self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
         self.BoxProbValuesPath = self.anuragRGBImagesPath 
         self.anuragLayoutspath = None
         self.anuragLayoutDebugImagespath = self.datasetDumpDirectory + "debugOutputs/"

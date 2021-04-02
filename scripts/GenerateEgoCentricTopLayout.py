@@ -95,6 +95,9 @@ class GenerateEgoCentricTopLayout(object):
     def writeLayout(self, annotations,  ID, dump_path):
         self.annotations = annotations
         min_shelf_number, max_shelf_number = self.get_shelf_range()
+
+        topEgoLayouts = []
+
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             shelf, boxes = self.get_shelf_and_boxes(shelf_number)
             #print(len(shelf))
@@ -121,13 +124,35 @@ class GenerateEgoCentricTopLayout(object):
                                                           box["object_dimensions"],
                                                           box["ego_rotation_y"],
                                                           box["shelf_number"])
-            #print(shelf["camera_rotation"])                                            
+                                                      
             if(shelf["camera_rotation"][2] != 4.71238899230957):
-                #print("Here")
                 shelf_images_data = shelf_images_data.transpose(Image.FLIP_LEFT_RIGHT)
             
-            im1 = shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
+            topEgoLayouts.append(shelf_images_data)
+            #shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
         # self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
+        self.saveNpyFiles(topEgoLayouts, ID, dump_path)
+
+    def saveNpyFiles(self, topEgoLayouts, ID, dump_path):
+        final_layout_racks = []
+        for shelf in range(Constants.MAX_SHELVES):
+            if(shelf >= len(topEgoLayouts)):
+                pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
+            else:
+                pixels = list(topEgoLayouts[shelf].getdata())
+                width, height = topEgoLayouts[shelf].size
+                pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
+    
+            pixels = np.array(pixels)    
+
+            if(self.DEBUG):
+                cv2.imwrite(filePathManager.getDebugRackLayoutPath("top",ID, shelf), pixels)
+                filePathManager.updateDebugImageNumber()
+            final_layout_racks.append(pixels)
+        final_layout_racks = np.array(final_layout_racks)
+        file_path = dump_path +"top"+ ID[:-4] + ".npy"
+        np.save(file_path, final_layout_racks)
+
     
     def get_shelf_range(self):
         min_shelf = 99999999

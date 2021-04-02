@@ -102,6 +102,7 @@ class GenerateLayouts(object):
             self.annotations = {}
             for annotationLine in annotationLines:
                 labels = annotationLine.split(", ")
+                print(len(labels))
                 object_type = labels[0]
                 shelf_number = int(labels[1])
                 object_location = labels[2:5]
@@ -111,7 +112,7 @@ class GenerateLayouts(object):
                 object_scale = labels[11:14]
                 camera_location = labels[14:17]
                 camera_rotation = labels[17:20]
-                interShelfDistance = float(labels[23])
+                #interShelfDistance = float(labels[23])
 
                 #if(object_type=="Shelf"):
                 objectEgoCentricLocation = self.get_locations(object_location, object_orientation, object_dimensions,
@@ -135,8 +136,8 @@ class GenerateLayouts(object):
                     "object_dimensions" : object_dimensions,
                     "camera_location" : camera_location,
                     "camera_rotation" : camera_rotation,
-                    "center" : [0,0],
-                    "interShelfDistance" : interShelfDistance
+                    "center" : [0,0]
+                    #"interShelfDistance" : interShelfDistance
                 }
 
                 if(shelf_number > self.max_shelf_number):
@@ -188,6 +189,6 @@ if __name__ == "__main__":
     generatelayouts = GenerateLayouts()
     generatelayouts.read_annotations(
         filePathManager.anuragAnnotationsLabelsPath,
-        filePathManager.anuragRGBImagesPath
+        filePathManager.anuragEgoCentricLayouts
     )
-    print("Generated Layouts at : ",filePathManager.anuragRGBImagesPath)
+    print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)
