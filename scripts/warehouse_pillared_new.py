@@ -12,7 +12,7 @@ from mathutils.bvhtree import BVHTree
 import math
 import sys
 import os
-sys.path.append(os.path.relpath("./scripts/pillared_warehouse/"))
+sys.path.append(os.path.relpath("./scripts/"))
 print(os.getcwd())
 from place_racks_and_objects import Place_racks_and_objects
 from add_forklift import Add_forklift
@@ -439,7 +439,7 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
 #    ##bpy.ops.export_scene.fbx(filepath='./rendered_warehouse/' +
 #    ##gty
 
-    #return 
+    return 
 
     #camera placement
     focal_length = 22

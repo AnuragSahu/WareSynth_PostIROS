@@ -82,6 +82,8 @@ class Place_racks_and_objects():
             obj.matrix_world = np.dot(orig_loc_mat,np.dot(rot_mat,np.dot(orig_rot_mat,orig_scale_mat)))
             
             bpy.ops.transform.translate(value=(x, y, curr_z), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False), mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
+            bpy.data.objects[model]["rackNumber"] = row_num
+            
             bpy.data.objects[model]["category_id"] = 1
             
             self.box_properties[model] = self.set_properties(model, row_num, rack_num)
@@ -127,9 +129,11 @@ class Place_racks_and_objects():
                 bpy.ops.transform.translate(value=(rack_location[0], rack_location[1], 0.32 + 1.32 * i), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False), mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)   
             else:
                 bpy.ops.transform.translate(value=(rack_location[0], rack_location[1],0.30*(height_shelf/1.31)*i + (height_shelf/1.31)*i), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False), mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
-                log("shelf height"+str(0.30*(height_shelf/1.31)*i + (height_shelf/1.31)*i))
-                log(str(height_shelf))
             bpy.ops.transform.resize(value=(1,len_shelf/5.12,1))
+            # log("\n\n\n\n\n\n\n\n\n\n")
+            # log(bpy.context.selected_objects[0].name)
+            # log("\n\n\n\n\n\n\n\n\n\n")
+            bpy.data.objects[bpy.context.selected_objects[0].name]["rackNumber"] = i
             
             bpy.ops.wm.collada_import(filepath=self.support_loc)
             if self.cli:
@@ -137,8 +141,7 @@ class Place_racks_and_objects():
             else:
                 bpy.ops.transform.translate(value=(rack_location[0], rack_location[1],0.30*(height_shelf/1.31)*i +((height_shelf/1.31)-1)*0.28 + (height_shelf/1.31) * i), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, False, False), mirror=True, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
             bpy.ops.transform.resize(value=(1,len_shelf/5.12,height_shelf/1.31))
-
-
+            bpy.data.objects[bpy.context.selected_objects[0].name]["rackNumber"] = i
 
             #upper bound invisible object
             bpy.ops.wm.collada_import(filepath=self.reference_line_up_loc)
@@ -207,7 +210,6 @@ class Place_racks_and_objects():
 
                 # rot_angle = random.uniform(-5,5)
                 rot_angle = 5
-
 
                 next_protrusion = abs((rot_angle/90))* (box_x/2-box_y/2)
                 next_boxy =  box_y/2
