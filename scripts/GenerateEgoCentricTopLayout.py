@@ -2,7 +2,9 @@ import Constants
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw
+import Constants
 from FileNameManager import filePathManager
+from preProcessing.FillRackGaps import fillRackGaps
 
 class GenerateEgoCentricTopLayout(object):
     def __init__(self):
@@ -58,7 +60,7 @@ class GenerateEgoCentricTopLayout(object):
         draw = ImageDraw.Draw(imgs)
 
         if (label == "Shelf"):
-            draw.polygon([tuple(p) for p in rectangle], fill=155)
+            draw.polygon([tuple(p) for p in rectangle], fill=Constants.FREE_SPACE)
 
         imgs = imgs.convert('L')
         return imgs
@@ -87,7 +89,7 @@ class GenerateEgoCentricTopLayout(object):
 
         draw = ImageDraw.Draw(imgs)
 
-        draw.polygon([tuple(p) for p in rectangle], fill=255)
+        draw.polygon([tuple(p) for p in rectangle], fill=Constants.BOX)
 
         imgs = imgs.convert('L')
         return imgs
@@ -129,6 +131,8 @@ class GenerateEgoCentricTopLayout(object):
                                                       
             if(shelf["camera_rotation"][2] != 4.71238899230957):
                 shelf_images_data = shelf_images_data.transpose(Image.FLIP_LEFT_RIGHT)
+            
+            shelf_images_data = fillRackGaps.process(shelf_images_data, Constants.GAP)
             
             topEgoLayouts.append(shelf_images_data)
             #shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")

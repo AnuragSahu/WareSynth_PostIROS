@@ -19,3 +19,9 @@ MAX_SHELVES = 4
 LENGTH = WIDTH = 20
 LAYOUT_SIZE = 512.0
 MAX_SHELF_DIFF_VAL = 4
+
+# RGB values of Various classes
+BLANK = 0
+FREE_SPACE = 115
+BOX = 255
+GAP = 200 # Fill some appropriate gap RGB value

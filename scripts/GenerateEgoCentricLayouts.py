@@ -93,8 +93,8 @@ class GenerateLayouts(object):
 
     def read_annotations(self, annotationsPath, dump_path):
         for file in glob(join(annotationsPath, '*.txt')):
+            print("For File : ", file)
             ID = file.split("/")[-1]
-            print("For ID : ",ID)
             f = open(file, "r")
             annotationLines = f.readlines()
             annotationID = 0
@@ -102,7 +102,6 @@ class GenerateLayouts(object):
             self.annotations = {}
             for annotationLine in annotationLines:
                 labels = annotationLine.split(", ")
-                print(len(labels))
                 object_type = labels[0]
                 shelf_number = int(labels[1])
                 object_location = labels[2:5]
@@ -169,7 +168,6 @@ class GenerateLayouts(object):
             heightOfBottomShelf = bottomShelfAnnotation["location"][2]
             heightOftopShelf = topShelfAnnotation["location"][2]
             shelfHeightDifference = abs(float(heightOftopShelf) - float(heightOfBottomShelf))
-            print(shelfHeightDifference)
         return shelfHeightDifference
 
 

@@ -17,7 +17,7 @@ class FilePathManager(object):
         self.kittiVelodynePath = self.datasetDumpDirectory + "KITTI/velodyne/"
         self.anuragAnnotationsPath = self.datasetDumpDirectory + "anuragAnnotations/"
         self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "labels/"
-        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "warehouse/"
+        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "images/"
         self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
         self.BoxProbValuesPath = self.anuragRGBImagesPath 
         self.anuragLayoutspath = None
@@ -42,6 +42,10 @@ class FilePathManager(object):
             pass
         try:
             os.makedirs(self.anuragLayoutDebugImagespath)
+        except FileExistsError:
+            pass
+        try:
+            os.makedirs(self.anuragEgoCentricLayouts)
         except FileExistsError:
             pass
         if(Constants.GENERATE_KITTI):
