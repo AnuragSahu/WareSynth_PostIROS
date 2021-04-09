@@ -1,6 +1,11 @@
 # Synthetic_warehouse
 Synthetic warehouse development, rendering and applications
 
+# Layouts
+| RGB Image | Layouts  |
+| ------- | --- |
+| ![RGB](./readmeAsset/000000.png) | ![RGB](./readmeAsset/top000000_0.png) ![RGB](./readmeAsset/top000000_1.png) ![RGB](./readmeAsset/top000000_2.png) ![RGB](./readmeAsset/top000000_3.png) |
+
 ## Assets Files
 
 The assets file can be downloaded from <a href="https://drive.google.com/drive/folders/139RCGB8rS_euDu-1-zSx5acT5NrYqBTW?usp=sharing"> Here </a>
