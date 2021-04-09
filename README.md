@@ -4,7 +4,7 @@ Synthetic warehouse development, rendering and applications
 # Layouts
 | RGB Image | Layouts  |
 | ------- | --- |
-|  <img src="./readmeAsset/000000.png" width="600" height="190"> |  <img src="./readmeAsset/top000000_0.png" width="300" height="300"> <img src="./readmeAsset/top000000_1.png" width="300" height="300"> <img src="./readmeAsset/top000000_2.png" width="300" height="300"> |
+|  <img src="./readmeAsset/000000.png" width="600" height="190"> |  <img src="./readmeAsset/top000000_3.png" width="300" height="300"> <img src="./readmeAsset/top000000_2.png" width="300" height="300"> <img src="./readmeAsset/top000000_1.png" width="300" height="300">  <img src="./readmeAsset/top000000_0.png" width="300" height="300"> |
 
 ## Assets Files
 
