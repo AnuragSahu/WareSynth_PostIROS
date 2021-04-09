@@ -99,7 +99,7 @@ class GenerateEgoCentricTopLayout(object):
         topEgoLayouts = []
 
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
-            shelf, boxes = self.get_shelf_and_boxes(shelf_number)
+            shelfs, boxes = self.get_shelf_and_boxes(shelf_number)
             #print(len(shelf))
             
             # Get the layout of the shelf
@@ -108,15 +108,17 @@ class GenerateEgoCentricTopLayout(object):
                 int(self.width/self.res))
             )
             layout = Image.fromarray(layout)
+            shelf_images_data = layout
 
-            shelf["object_ego_location"] = self.get_locations(shelf["object_ego_location"])
+            #shelf["object_ego_location"] = self.get_locations(shelf["object_ego_location"])
 
-            shelf_images_data = self.generate_layout_rack(layout, 
-                                                          shelf["object_type"], 
-                                                          shelf["object_ego_location"],
-                                                          shelf["object_dimensions"],
-                                                          shelf["ego_rotation_y"],
-                                                          shelf["shelf_number"])
+            for shelf in shelfs:
+                shelf_images_data = self.generate_layout_rack(shelf_images_data, 
+                                                              shelf["object_type"], 
+                                                              self.get_locations(shelf["object_ego_location"]),
+                                                              shelf["object_dimensions"],
+                                                              shelf["ego_rotation_y"],
+                                                              shelf["shelf_number"])
             for box in boxes:
                 shelf_images_data = self.generate_layout_Box(shelf_images_data, 
                                                           box["object_type"], 
@@ -165,15 +167,15 @@ class GenerateEgoCentricTopLayout(object):
         return [min_shelf, max_shelf]
     
     def get_shelf_and_boxes(self, shelfNumber):
-        shelf = None
+        shelfs = []
         boxes = []
         for annotation in self.annotations.values():
             if(annotation["shelf_number"] == shelfNumber):
                 if(annotation["object_type"] == "Shelf"):
-                    shelf = annotation
+                    shelfs.append(annotation)
                 elif(annotation["object_type"] == "Box"):
                     boxes.append(annotation)
-        return [shelf,boxes]
+        return [shelfs,boxes]
 
     def calculateCenter(self, shelf, boxes):
         center_x, center_y = shelf["object_location"][:2]

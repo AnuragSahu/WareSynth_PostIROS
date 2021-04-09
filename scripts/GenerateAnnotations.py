@@ -22,7 +22,7 @@ class GenerateAnnotations(object):
         camera_rotation = cameraProperties.get_camera_rotation()
         camera_scale = cameraProperties.get_camera_scale()
         for object in objects:
-            if(object[:3] != "She"):
+            if(object[:3] != "She" and object[:]!="columns001" and object[:3]!="lig" and object[:3]!="Sup" and object[:3]!="Lin" and object[:3]!="Cub" and object[:3]!="Emp"):
                 object_type = "Box"
                 object_shelf_number = assets.get_shelf_number_for_box(object)
                 object_location = assets.get_box_location(object)
@@ -40,19 +40,20 @@ class GenerateAnnotations(object):
                 object_scale = assets.get_shelf_scale(object)
                 inter_shelf_distance = intershelfDistance
         
-            self.update_layout_annotations([
-                str(object_type),
-                str(object_shelf_number),
-                self.comma.join(self.elements_as_string(object_location)),
-                self.comma.join(self.elements_as_string(object_rotations)),
-                self.comma.join(self.elements_as_string(object_dimensions)),
-                self.comma.join(self.elements_as_string(object_scale)),
-                self.comma.join(self.elements_as_string(camera_location)),
-                self.comma.join(self.elements_as_string(camera_rotation)),
-                self.comma.join(self.elements_as_string(camera_scale)),
-                str(inter_shelf_distance),
-                str(prob_boxes)
-            ])
+            if(object[:]!="columns001" and object[:3]!="lig" and object[:3]!="Sup" and object[:3]!="Lin" and object[:3]!="Cub" and object[:3]!="Emp"):
+                self.update_layout_annotations([
+                    str(object_type),
+                    str(object_shelf_number),
+                    self.comma.join(self.elements_as_string(object_location)),
+                    self.comma.join(self.elements_as_string(object_rotations)),
+                    self.comma.join(self.elements_as_string(object_dimensions)),
+                    self.comma.join(self.elements_as_string(object_scale)),
+                    self.comma.join(self.elements_as_string(camera_location)),
+                    self.comma.join(self.elements_as_string(camera_rotation)),
+                    self.comma.join(self.elements_as_string(camera_scale)),
+                    str(inter_shelf_distance),
+                    str(prob_boxes)
+                ])
         self.write_layout_annotations(file_name)
 
     def update_layout_annotations(self, objects_and_camera):

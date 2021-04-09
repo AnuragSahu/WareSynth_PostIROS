@@ -439,7 +439,7 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
 #    ##bpy.ops.export_scene.fbx(filepath='./rendered_warehouse/' +
 #    ##gty
 
-    return 
+    #return 
 
     #camera placement
     focal_length = 22
@@ -553,7 +553,7 @@ for i in range(1):
     corridor_width = random.uniform(13,14)
 
     #Use this variable to define the number of racks along the length of the warehouses
-    num_rack_y = 6 #random.randint(6, 12)
+    num_rack_y = 3 #random.randint(6, 12)
 
     density_forklift = 0#random.uniform(0, 0.2)
 

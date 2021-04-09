@@ -2,11 +2,11 @@ from bpy import context
 import bpy
 from mathutils import Matrix,Vector
 from mathutils.geometry import normal
-from Assets import assets
-from CameraProperties import cameraProperties
 import numpy as np
 from bpy_extras.object_utils import world_to_camera_view
 
+class writeAnnotations(object):
+    
 
 class FOV(object):
 
@@ -134,50 +134,51 @@ class FOV(object):
         return objects_in_fov
 
 
-    def get_objects_in_fov(self, rack_in_focous):
+    def get_objects_in_fov(self):
         possible_obj_in_fov = self.select_objects_in_camera()
-        # print("beofre",obj_in_fov)
-        shelfs = assets.get_shelfs_in_rack(rack_in_focous)
+        print(possible_obj_in_fov)
+        # shelfs = assets.get_shelfs_in_rack(rack_in_focous)
 
-        objects_in_FOV = []
+        # objects_in_FOV = []
 
-        shelfs_count = 0
+        # shelfs_count = 0
 
-        for shelf in shelfs:
+        # for shelf in shelfs:
 
-            lineup = "LineUp"
-            linedown = "LineDown"
+        #     lineup = "LineUp"
+        #     linedown = "LineDown"
             
-            if shelf == "Shelf":
-                pass
-            else:
-                lineup +=shelf[-4:]
-                linedown +=shelf[-4:]
+        #     if shelf == "Shelf":
+        #         pass
+        #     else:
+        #         lineup +=shelf[-4:]
+        #         linedown +=shelf[-4:]
 
-            if shelf in possible_obj_in_fov:
-                shelfs_count += 1
+        #     if shelf in possible_obj_in_fov:
+        #         shelfs_count += 1
 
-                if lineup in possible_obj_in_fov and linedown in possible_obj_in_fov:
+        #         if lineup in possible_obj_in_fov and linedown in possible_obj_in_fov:
 
-                    objects_in_FOV.append(shelf)
+        #             objects_in_FOV.append(shelf)
 
-                    boxes = assets.shelf_to_box[shelf]
+        #             boxes = assets.shelf_to_box[shelf]
                 
-                    for box in boxes:
-                        if box in possible_obj_in_fov:
-                            objects_in_FOV.append(box)
+        #             for box in boxes:
+        #                 if box in possible_obj_in_fov:
+        #                     objects_in_FOV.append(box)
                 
-                elif linedown not in possible_obj_in_fov and lineup not in possible_obj_in_fov:
-                    continue
+        #         elif linedown not in possible_obj_in_fov and lineup not in possible_obj_in_fov:
+        #             continue
 
-                else:
-                    return ["invalid"]
+        #         else:
+        #             return ["invalid"]
 
-        # print(objects_in_FOV)
+        # # print(objects_in_FOV)
 
-        if shelfs_count < 2:
-            return ["invalid"]
+        # if shelfs_count < 2:
+        #     return ["invalid"]
             
         return possible_obj_in_fov
 
 fov = FOV()
+print(fov.get_objects_in_fov())

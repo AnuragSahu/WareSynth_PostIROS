@@ -2,7 +2,7 @@
 
 for i in {1..1..1}
 do
-	../blender_tanvi/blender -P scripts/pillared_warehouse/warehouse_pillared_new.py -b
+	../blender/blender -P scripts/warehouse_pillared_new.py -b
 	mv "./datasets" "./datasets_${i}"
 done
 python3 scripts/pillared_warehouse/dataset_merger.py
