@@ -8,7 +8,6 @@ dataGenerationLogs.txt
 
 # Datasets
 datasets**
-sampleD/
 objects/
 train_files.txt
 val_files.txt
