@@ -7,7 +7,7 @@
 dataGenerationLogs.txt
 
 # Datasets
-datasets/
+datasets**
 objects/
 train_files.txt
 val_files.txt
