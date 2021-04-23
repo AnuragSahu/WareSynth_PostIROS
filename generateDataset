@@ -1,8 +1,8 @@
 #!/bin/bash
 
-for i in {1..2..1}
+for i in {1..200..1}
 do
-	../blender_tanvi/blender -P scripts/pillared_warehouse/warehouse_pillared_new.py -b
+	../blender_tanvi/blender -P scripts/warehouse_pillared_new.py -b
 	python3 scripts/GenerateEgoCentricLayouts.py
 	mv "./datasets" "./datasets_${i}"
 done

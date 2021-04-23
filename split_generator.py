@@ -1,9 +1,9 @@
 import random
 
-labelIds = [i for i in range(3134)]
+labelIds = [i for i in range(2295)]
 random.shuffle(labelIds)
-train_split = labelIds[ : 2900]
-val_split = labelIds[2900 : ]
+train_split = labelIds[ : 1500]
+val_split = labelIds[1500 : ]
 
 print(len(train_split), len(val_split))
 

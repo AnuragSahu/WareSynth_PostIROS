@@ -65,7 +65,7 @@ class MergeDatasets(object):
 
                 imagePath_next = imageIDs_next + self.formatFileName(self.IDNumber, "png")
                 depthPath_next = depthIDs_next + self.formatFileName(self.IDNumber, "png")
-                topLayoutsPath_next = topLayoutsIDs_next + self.formatFileName(self.IDNumber, "npy")
+                topLayoutsPath_next = topLayoutsIDs_next +"top"+ self.formatFileName(self.IDNumber, "npy")
                 labelsPath_next = labelsIDs_next + self.formatFileName(self.IDNumber, "txt")
                 
                 move(imagePath_current, imagePath_next)

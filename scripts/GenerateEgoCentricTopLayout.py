@@ -42,12 +42,8 @@ class GenerateEgoCentricTopLayout(object):
         length = self.length
         width = self.width
 
-        #print(locations)
         center_x = int(float(locations[0]) / res + width / (2*res))
-        # center_x = 256
-        # center_y = int(float(locations[1]) / res + length / (2*res))
         center_y = int(float(locations[1]) / res)# + length / (2*res))
-        # center_y = 256
 
         orient = -1 * float(rotation_y)
 
@@ -132,7 +128,8 @@ class GenerateEgoCentricTopLayout(object):
             if(shelf["camera_rotation"][2] != 4.71238899230957):
                 shelf_images_data = shelf_images_data.transpose(Image.FLIP_LEFT_RIGHT)
             
-            shelf_images_data = fillRackGaps.process(shelf_images_data, Constants.GAP)
+            # comment out this line if you dont want to have filled gaps
+            # shelf_images_data = fillRackGaps.process(shelf_images_data, Constants.GAP)
             
             topEgoLayouts.append(shelf_images_data)
             #shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
