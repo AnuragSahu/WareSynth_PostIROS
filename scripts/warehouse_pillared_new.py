@@ -26,7 +26,7 @@ from GenerateAnnotations import generateAnnotations
 from Assets import assets
 from Console import log, clearLog
 from FileNameManager import filePathManager
-from FOV import fov
+from FOV_Generic import fov
 from WipeOutObject import deleteSelectedObjects
 from WriteKitti import writeKitti
 
@@ -441,7 +441,7 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
 
     #return 
 
-    #camera placement
+    # camera parameter adjustment
     focal_length = 22
     scene = bpy.context.scene
     cam_data = bpy.data.cameras.new('camera')
@@ -459,7 +459,9 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
     scene.render.resolution_percentage = 100
 
     obj_in_fov = []
-    
+
+    # set the camera position
+########################################################################################    
     for rack_number in range(len(assets.rack_to_shelf)):
         for im_num in range(3,4):
             distances = [[5, random.uniform(0.93,1.06)],
@@ -470,13 +472,10 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
             
             try:
                 if rack_number < num_rack_y-1:
-                    # distance_from_rack = 
                     cam_x = bottom_shelf_coords[0] + distances[im_num % len(distances)][0]
-                    #valid_x = check_range(x_ranges_cam, cam_x)  
                     cam_z_rot = math.pi/2
                 else:
                     cam_x = bottom_shelf_coords[0] - distances[im_num % len(distances)][0]
-                    #valid_x = check_range(x_ranges_cam, cam_x)  
                     cam_z_rot = 3*math.pi/2
 
                 cam_y = bottom_shelf_coords[1]
@@ -489,18 +488,23 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
             if(Constants.RENDERING_ON_ADA):
                 bpy.context.scene.render.engine = 'CYCLES'  
                 set_rendering_settings()
+    
+    # render the image from camera
+###########################################################################################                
             result = bpycv.render_data() 
-            objects = fov.get_objects_in_fov(rack_number)
+            #objects = fov.get_objects_in_fov(rack_number)
+            objects = fov.get_objects_in_fov()
             if objects[0] == "invalid":
                 continue
             #log(str(rack_number) +str(objects))
             obj_in_fov.append(objects)
             assets.rack_cam_location.append(([cam_x, cam_y, cam_z, math.pi/2, 0.0, cam_z_rot]))
             #return
-    # print(obj_in_fov)
-    # return
+    #print(obj_in_fov)
+    #return
 
     #deleting all the invisible objects
+#############################################################################################
     bpy.ops.object.select_all(action='DESELECT')
     for line_obj in assets.invisible_lines_properties.keys():
         bpy.data.objects[line_obj].select_set(True) # Blender 2.8x
@@ -553,7 +557,7 @@ for i in range(1):
     corridor_width = random.uniform(13,14)
 
     #Use this variable to define the number of racks along the length of the warehouses
-    num_rack_y = 6 #random.randint(6, 12)
+    num_rack_y = 4 #random.randint(6, 12)
 
     density_forklift = 0#random.uniform(0, 0.2)
 
