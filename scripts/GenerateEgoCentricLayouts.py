@@ -6,6 +6,7 @@ import mathutils
 import math
 from FileNameManager import filePathManager
 from GenerateEgoCentricTopLayout import generateEgoCentricTopLayout
+from GenerateEgoCentricFrontLayout import generateEgoCentricFrontLayout
 from GenerateFrontalLayout import generateFrontalLayout
 
 class GenerateLayouts(object):
@@ -111,7 +112,8 @@ class GenerateLayouts(object):
                 object_scale = labels[11:14]
                 camera_location = labels[14:17]
                 camera_rotation = labels[17:20]
-                #interShelfDistance = float(labels[23])
+                interShelfDistance = float(labels[23])
+                # print(float(labels[23]))
 
                 #if(object_type=="Shelf"):
                 objectEgoCentricLocation = self.get_locations(object_location, object_orientation, object_dimensions,
@@ -135,8 +137,8 @@ class GenerateLayouts(object):
                     "object_dimensions" : object_dimensions,
                     "camera_location" : camera_location,
                     "camera_rotation" : camera_rotation,
-                    "center" : [0,0]
-                    #"interShelfDistance" : interShelfDistance
+                    "center" : [0,0],
+                    "interShelfDistance" : interShelfDistance
                 }
 
                 if(shelf_number > self.max_shelf_number):
@@ -144,6 +146,7 @@ class GenerateLayouts(object):
                 annotationID += 1
     
             generateEgoCentricTopLayout.writeLayout(self.annotations, ID, dump_path)
+            generateEgoCentricFrontLayout.writeLayout(self.annotations, ID, dump_path)
             #generateFrontalLayout.writeLayout(self.annotations, ID, dump_path)
             
     def get_shelf_and_boxes(self, shelfNumber):

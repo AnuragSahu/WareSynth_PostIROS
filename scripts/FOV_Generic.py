@@ -2,8 +2,8 @@ from bpy import context
 import bpy
 from mathutils import Matrix,Vector
 from mathutils.geometry import normal
-from Assets import assets
-from CameraProperties import cameraProperties
+# from Assets import assets
+# from CameraProperties import cameraProperties
 import numpy as np
 from bpy_extras.object_utils import world_to_camera_view
 
@@ -133,29 +133,113 @@ class FOV(object):
         
         return objects_in_fov
 
+    def project_3d_point(self, camera: bpy.types.Object,
+                         p: Vector,
+                         render: bpy.types.RenderSettings = bpy.context.scene.render) -> Vector:
+        """
+        Given a camera and its projection matrix M;
+        given p, a 3d point to project:
+
+        Compute P’ = M * P
+        P’= (x’, y’, z’, w')
+
+        Ignore z'
+        Normalize in:
+        x’’ = x’ / w’
+        y’’ = y’ / w’
+
+        x’’ is the screen coordinate in normalised range -1 (left) +1 (right)
+        y’’ is the screen coordinate in  normalised range -1 (bottom) +1 (top)
+
+        :param camera: The camera for which we want the projection
+        :param p: The 3D point to project
+        :param render: The render settings associated to the scene.
+        :return: The 2D projected point in normalized range [-1, 1] (left to right, bottom to top)
+        """
+
+        if camera.type != 'CAMERA':
+            raise Exception("Object {} is not a camera.".format(camera.name))
+
+        if len(p) != 3:
+            raise Exception("Vector {} is not three-dimensional".format(p))
+
+        # Get the two components to calculate M
+        modelview_matrix = camera.matrix_world.inverted()
+        projection_matrix = camera.calc_matrix_camera(
+            bpy.data.scenes["Scene"].view_layers["View Layer"].depsgraph,
+            x = render.resolution_x,
+            y = render.resolution_y,
+            scale_x = render.pixel_aspect_x,
+            scale_y = render.pixel_aspect_y,
+        )
+
+        # print(projection_matrix * modelview_matrix)
+
+        # Compute P’ = M * P
+        p1 = projection_matrix @ modelview_matrix @ Vector((p.x, p.y, p.z, 1))
+
+        # Normalize in: x’’ = x’ / w’, y’’ = y’ / w’
+        p2 = Vector(((p1.x/p1.w, p1.y/p1.w)))
+
+        # project_points in camera frame
+        proj_p_pixels = Vector(((render.resolution_x -1)*(p2.x+1)/2,
+                                (render.resolution_y -1)*(p2.y-1)/(-2)))
+        return p2, proj_p_pixels
+
+    def object_in_frame(self, projected_points,
+                        render: bpy.types.RenderSettings = bpy.context.scene.render):
+        
+        max_x = render.resolution_x
+        max_y = render.resolution_y
+        
+#        print(max_x, max_y)
+#        print(projected_points[0], projected_points[1][1], end=" Here\n")
+        if(projected_points[1][0] < max_x and projected_points[1][1] < max_y and
+           projected_points[1][0] > 0 and projected_points[1][1] > 0):
+            return True
+        else:
+            return False
 
     def get_objects_in_fov(self):
         possible_obj_in_fov = self.select_objects_in_camera()
+#        print("Objects in FOV : ", possible_obj_in_fov)
         objects_in_FOV = []
         shelfs_count = 0
+
+        # Old Way
+        # for shelf in possible_obj_in_fov:
+        #     lineup = "LineUp"
+        #     linedown = "LineDown"
+        #     if shelf == "Shelf":
+        #         pass
+        #     else:
+        #         lineup +=shelf[-4:]
+        #         linedown +=shelf[-4:]
+        #     shelfs_count += 1
+        #     if lineup in possible_obj_in_fov and linedown in possible_obj_in_fov:
+        #         objects_in_FOV.append(shelf)
+        #     elif linedown not in possible_obj_in_fov and lineup not in possible_obj_in_fov:
+        #         continue
+        #     else:
+        #         return ["invalid"]
+        # if shelfs_count < 2:
+        #     return ["invalid"]
+        # return objects_in_FOV
+
+        # New Way
         for shelf in possible_obj_in_fov:
-            print(shelf)
-            lineup = "LineUp"
-            linedown = "LineDown"
-            if shelf == "Shelf":
-                pass
-            else:
-                lineup +=shelf[-4:]
-                linedown +=shelf[-4:]
-            shelfs_count += 1
-            if lineup in possible_obj_in_fov and linedown in possible_obj_in_fov:
+            obj = bpy.data.objects[shelf]
+            points = self.project_3d_point(camera = context.scene.camera,
+                                            p = obj.location,
+                                            render = bpy.context.scene.render)
+            if(self.object_in_frame(points) or (shelf[:5] == "Shelf") and points[1][1] > 0):
                 objects_in_FOV.append(shelf)
-            elif linedown not in possible_obj_in_fov and lineup not in possible_obj_in_fov:
-                continue
-            else:
-                return ["invalid"]
-        if shelfs_count < 2:
-            return ["invalid"]
-        return possible_obj_in_fov
+        
+        return objects_in_FOV
+
 
 fov = FOV()
+
+if __name__ == "__main__":
+    objects = fov.get_objects_in_fov()
+    print(objects)

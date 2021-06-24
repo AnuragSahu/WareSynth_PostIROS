@@ -16,7 +16,8 @@ LOG_FILE_PATH = "./dataGenerationLogs.txt"
 
 # For Layout Generation
 MAX_SHELVES = 4
-LENGTH = WIDTH = 20
+LENGTH = 20
+WIDTH = 20
 LAYOUT_SIZE = 512.0
 MAX_SHELF_DIFF_VAL = 4
 

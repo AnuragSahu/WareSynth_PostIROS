@@ -459,12 +459,14 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
     scene.render.resolution_percentage = 100
 
     obj_in_fov = []
+    # print(get_calibration_matrix_K_from_blender(cam.data))
+    # return
 
     # set the camera position
 ########################################################################################    
     for rack_number in range(len(assets.rack_to_shelf)):
-        for im_num in range(3,4):
-            distances = [[5, random.uniform(0.93,1.06)],
+        for im_num in range(0,4):
+            distances = [[5, random.uniform(0.5,0.7)],
                          [random.uniform(6,7), random.uniform(1.8,2.29)], 
                          [random.uniform(8,10), 3.2],
                          [random.uniform(12,13), random.uniform(4.95, 5.35)]]
@@ -525,6 +527,7 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
         cameraProperties.image_size = (scene.render.resolution_x, scene.render.resolution_y)
         cameraProperties.update_camera(cam, scene)
         print("Written RGB and Annotations")
+        print(im_num, obj_in_fov[im_num])
         generateAnnotations.generate_layout_annotations(
             obj_in_fov[im_num],
             filePathManager.getAnuragAnnotationsLabelPath(),
@@ -551,13 +554,13 @@ for i in range(1):
     no_rack_column = 1
 
     # Use this variable to define the density of boxes on each rack [0,1]
-    prob_of_box = 0.8#prob_boxes[i%3]
+    prob_of_box = 0.6 #prob_boxes[i%3]
 
     # Use this variable to set the width of the corridor between 2 select_set
     corridor_width = random.uniform(13,14)
 
     #Use this variable to define the number of racks along the length of the warehouses
-    num_rack_y = 4 #random.randint(6, 12)
+    num_rack_y = 3 #random.randint(6, 12)
 
     density_forklift = 0#random.uniform(0, 0.2)
 

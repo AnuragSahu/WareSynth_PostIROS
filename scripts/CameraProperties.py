@@ -22,7 +22,7 @@ class CameraProperties(object):
 
         self.camera_rotation = [
             camera.rotation_euler.x, 
-            camera.rotation_euler.z, 
+            camera.rotation_euler.y, 
             camera.rotation_euler.z
         ]
 

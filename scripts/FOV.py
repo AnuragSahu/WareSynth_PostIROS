@@ -136,7 +136,7 @@ class FOV(object):
 
     def get_objects_in_fov(self, rack_in_focous):
         possible_obj_in_fov = self.select_objects_in_camera()
-        # print("beofre",obj_in_fov)
+        print("before",possible_obj_in_fov)
         shelfs = assets.get_shelfs_in_rack(rack_in_focous)
 
         objects_in_FOV = []
