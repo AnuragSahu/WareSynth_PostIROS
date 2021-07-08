@@ -12,6 +12,15 @@ from GenerateFrontalLayout import generateFrontalLayout
 class GenerateLayouts(object):
     def __init__(self):
         self.annotations = {}
+        self.dimensions_map = {}
+        with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip('\n')
+                elem  = line.split(", ")
+
+                self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
+        print(self.dimensions_map)
 
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
@@ -98,24 +107,47 @@ class GenerateLayouts(object):
             ID = file.split("/")[-1]
             f = open(file, "r")
             annotationLines = f.readlines()
+            rack_in_focus = annotationLines[0].strip('\n')
+            annotationLines = annotationLines[1:]
             annotationID = 0
             self.max_shelf_number = 0
             self.annotations = {}
             for annotationLine in annotationLines:
+                annotationLine = annotationLine.strip('\n')
                 labels = annotationLine.split(", ")
                 object_type = labels[0]
-                shelf_number = int(labels[1])
-                object_location = labels[2:5]
-                object_orientation = labels[5:8]
-                #rotation_y = labels[7]
-                object_dimensions = labels[8:11]
-                object_scale = labels[11:14]
-                camera_location = labels[14:17]
-                camera_rotation = labels[17:20]
-                interShelfDistance = float(labels[23])
-                # print(float(labels[23]))
 
-                #if(object_type=="Shelf"):
+                if labels[0][0] == 'S':
+                    object_type = "Shelf"
+                    object_dimensions = self.dimensions_map["Shelf"]
+                else:
+                    object_type = "Box"
+                    object_dimensions = self.dimensions_map[labels[0]]
+
+                shelf_number = int(labels[2].split('_')[-1])
+
+                
+                object_location = labels[3:6]
+                object_orientation = labels[6:9]
+                object_scale = labels[9:12]
+
+                camera_location = labels[12:15]
+                camera_rotation = labels[15:18]
+                
+
+                cutting_plane_limits = {}
+
+                for i in range(18, 18+30, 10):
+                    one_plane = labels[i:i+10]
+                    print(one_plane)
+                    #can parse here
+                    cutting_plane_limits[one_plane[0]] = one_plane[1:]
+
+                interShelfDistance = self.dimensions_map["Shelf"][1]
+                
+
+
+
                 objectEgoCentricLocation = self.get_locations(object_location, object_orientation, object_dimensions,
                                                                     camera_location, camera_rotation)
 
@@ -188,6 +220,7 @@ class GenerateLayouts(object):
 
 if __name__ == "__main__":
     generatelayouts = GenerateLayouts()
+
     generatelayouts.read_annotations(
         filePathManager.anuragAnnotationsLabelsPath,
         filePathManager.anuragEgoCentricLayouts

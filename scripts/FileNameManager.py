@@ -5,7 +5,7 @@ import sys
 class FilePathManager(object):
     def __init__(self):
         
-        self.datasetDumpDirectory = "./datasets/"
+        self.datasetDumpDirectory = "../../unity_retail/WareSynth/Assets/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0
@@ -15,9 +15,9 @@ class FilePathManager(object):
         self.kittiCalibpath = self.datasetDumpDirectory + "KITTI/calib/"
         self.kittiDepthPath = self.datasetDumpDirectory + "KITTI/depth/"
         self.kittiVelodynePath = self.datasetDumpDirectory + "KITTI/velodyne/"
-        self.anuragAnnotationsPath = self.datasetDumpDirectory + "anuragAnnotations/"
-        self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "labels/"
-        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "images/"
+        self.anuragAnnotationsPath = self.datasetDumpDirectory
+        self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "Annotations/"
+        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "Images/"
         self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
         self.BoxProbValuesPath = self.anuragRGBImagesPath 
         self.anuragLayoutspath = None
