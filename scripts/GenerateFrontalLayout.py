@@ -21,11 +21,12 @@ class GenerateFrontalLayout(object):
         min_shelf_number, max_shelf_number = self.get_shelf_range()
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance()
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
-            #interShelfDistance = self.annotations["intershelfDistance"]
+            # interShelfDistance = self.annotations["interShelfDistance"]
             shelf, boxes = self.get_shelf_and_boxes(shelf_number)
-            interShelfDistance = float(shelf["interShelfDistance"])
-            _, centerX , centerY = shelf["location"]
-            camera_rotation_z = shelf["camera_rotation"][2]
+            interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
+            centerX, centerY, _ = shelf["object_location"]
+            camera_rotation_z = shelf["camera_rotation"][1]
+            # print(camera_rotation_z)
             layout_shelf = self.generateFrontalLayoutShelf(shelf, centerX , centerY, interShelfDistance)
             layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
             shelf_layouts.append(layout_shelf)
@@ -41,13 +42,14 @@ class GenerateFrontalLayout(object):
             int(self.width/self.res))
         )
         layout = Image.fromarray(layout)
-        _,x,y = annotation["location"]
-        center_x = int((float(x)-float(img_x)) / self.res + self.width / (2*self.res))
-        center_y = int((float(img_y)-float(y) - obj_w/2) / self.res + self.length / (2*self.res))
+        x,y,_ = annotation["object_location"]
+        center_x = int((float(img_x)-float(x)) / self.res + self.width / (2*self.res))
+        center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
+        # center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
         orient = 0
-        dimensions = annotation["dimensions"]
-        print("FREE SPACE : ", obj_w)
-        obj_w = int((float(obj_w) + 0.05)/self.res)
+        dimensions = annotation["object_dimensions"]
+        # print("FREE SPACE : ", obj_w)
+        obj_w = int((float(obj_w))/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)
@@ -56,7 +58,7 @@ class GenerateFrontalLayout(object):
         return layout
 
     def accountCameraRotation(self, layout, camera_rotation):
-        if(float(camera_rotation) > np.pi):
+        if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
             layout = ImageOps.mirror(layout)
         return layout
 
@@ -67,14 +69,14 @@ class GenerateFrontalLayout(object):
         )
         layout = Image.fromarray(layout)
         for annotation in annotations:
-            _,x,y = annotation["location"]
-            center_x = int((float(x)-float(img_x)) / self.res + self.width / (2*self.res))
+            x,y,_ = annotation["object_location"]
+            center_x = int((float(img_x)-float(x)) / self.res + self.width / (2*self.res))
             center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
             orient = 0
-            dimensions = annotation["dimensions"]
-            print("BOX",dimensions[2])
-            obj_w = int(float(dimensions[2])/self.res)
-            obj_l = int(float(dimensions[1])/self.res)
+            dimensions = annotation["object_dimensions"]
+            # print("BOX",dimensions[2])
+            obj_w = int(float(dimensions[1])/self.res)
+            obj_l = int(float(dimensions[0])/self.res)
             rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
             draw = ImageDraw.Draw(layout)
             draw.polygon([tuple(p) for p in rectangle], fill = 255)

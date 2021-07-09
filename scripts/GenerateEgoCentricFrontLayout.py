@@ -1,4 +1,5 @@
 import Constants
+import mathutils
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw
@@ -15,11 +16,89 @@ class GenerateEgoCentricFrontLayout(object):
         self.DEBUG = True
         self.annotations = {}
 
-    def get_locations(self, locations):
-        x = locations[0]
-        y = locations[1]
-        z = locations[2]
-        return [x,y,z]
+    def eul2rot(self, theta) :
+        theta = [float(theta[0]), float(theta[1]), float(theta[2])]
+        R = np.array([[np.cos(theta[1])*np.cos(theta[2]),np.sin(theta[0])*np.sin(theta[1])*np.cos(theta[2]) - np.sin(theta[2])*np.cos(theta[0]), np.sin(theta[1])*np.cos(theta[0])*np.cos(theta[2]) + np.sin(theta[0])*np.sin(theta[2])],
+                      [np.sin(theta[2])*np.cos(theta[1]),np.sin(theta[0])*np.sin(theta[1])*np.sin(theta[2]) + np.cos(theta[0])*np.cos(theta[2]), np.sin(theta[1])*np.sin(theta[2])*np.cos(theta[0]) - np.sin(theta[0])*np.cos(theta[2])],
+                      [-np.sin(theta[1]),np.sin(theta[0])*np.cos(theta[1]),np.cos(theta[0])*np.cos(theta[1])]])
+
+        pSet = 6
+        R = np.array([[round(R[0,0],pSet), round(R[0,1], pSet), round(R[0,2],pSet)],
+                      [round(R[1,0],pSet), round(R[1,1], pSet), round(R[1,2],pSet)],
+                      [round(R[2,0],pSet), round(R[2,1], pSet), round(R[2,2],pSet)]])
+
+        return R
+    # def get_locations(self, locations):
+    #     x = locations[0]
+    #     y = locations[1]
+    #     z = locations[2]
+    #     return [x,y,z]
+
+    def get_3x4_RT(self, loc, rot):
+        # bcam stands for blender camera
+        R_bcam2cv = mathutils.Matrix(
+            ((1, 0,  0),
+            (0, -1, 0),
+            (0, 0, -1)))
+        R_bcam2cv = np.array(R_bcam2cv)
+        # Transpose since the rotation is object rotation, 
+        # and we want coordinate rotation
+        # R_world2bcam = cam.rotation_euler.to_matrix().transposed()
+        # T_world2bcam = -1*R_world2bcam * location
+        #
+        # Use matrix_world instead to account for all constraints
+        R_world2bcam = self.eul2rot(rot)
+        R_world2bcam = R_world2bcam.T
+        
+        location = np.array([float(loc[0]), float(loc[1]), float(loc[2])])
+        #print(loc)
+        #print(rot)
+        #rotation = mathutils.Euler((float(rot[0]), float(rot[1]), float(rot[2])))
+        #R_world2bcam = rotation.to_matrix().transposed()
+        #R_world2bcam = np.array(R_world2bcam)
+        #print("R World Matrix : ", np.array(R_world2bcam))
+        # Convert camera location to translation vector used in coordinate changes
+
+        #print(R_world2bcam)
+        #print(location)
+        T_world2bcam = -1*R_world2bcam @ location
+
+        #print("T_world2bcam : ",T_world2bcam)
+        # Use location from matrix_world to account for constraints:     
+        #T_world2bcam = -1*R_world2bcam * location
+
+        # Build the coordinate transform matrix from world to computer vision camera
+        R_world2cv = R_bcam2cv @ R_world2bcam
+        T_world2cv = R_bcam2cv @ T_world2bcam
+        # put into 3x4 matrix
+        RT = np.array([[R_world2cv[0][0], R_world2cv[0][1], R_world2cv[0][2] , T_world2cv[0]],
+                       [R_world2cv[1][0], R_world2cv[1][1], R_world2cv[1][2] , T_world2cv[1]],
+                       [R_world2cv[2][0], R_world2cv[2][1], R_world2cv[2][2] , T_world2cv[2]]
+        ])
+        return np.array(RT)
+
+    def get_locations(self, obj_loc, obj_rot, cam_loc, cam_rot):
+        RT = self.get_3x4_RT(cam_loc, cam_rot)
+        extra_vec = np.array([0,0,0,1])
+        RT = np.vstack((RT, extra_vec))
+
+        locations = np.array([
+            float(obj_loc[0]),
+            float(obj_loc[1]),
+            float(obj_loc[2]),
+            1
+        ])
+
+        #print("RT : ",RT)
+        #print("loc : ",locations)
+        locations = RT @ locations
+        locations /= locations[3]
+        #print(obj_loc,cam_loc)
+        locations = locations[:3]
+        #locations = [locations[2],locations[1]+float(obj_dim[2])/2,locations[0]]
+        #locations = [locations[2],locations[1],locations[0]]
+        #locations = [str(i) for i in locations]
+        return locations
 
     def get_rect(self, x, y, width, height, theta):
         rect = np.array([(-width / 2, -height / 2), (width / 2, -height / 2),
@@ -43,8 +122,8 @@ class GenerateEgoCentricFrontLayout(object):
         width = self.width
 
         center_x = int(float(locations[0]) / res + width / (2*res))
-        center_y = int(float(locations[1]-interShelfDistance/2) / res + length / (2*res))
-        # center_y = int(float(locations[2]) / res + length / (2*res))
+        center_y = int(float(locations[1]) / res + length / (2*res))
+        # center_y = int(float(locations[1]) / res + length / (2*res))
 
         # orient = -1 * float(rotation_y)
         orient = 0
@@ -82,8 +161,8 @@ class GenerateEgoCentricFrontLayout(object):
         # orient = -1 * float(rotation_y)
         orient = 0
 
-        obj_w = int(float(dimentions[2])/res)
-        obj_l = int(float(dimentions[1])/res)
+        obj_w = int(float(dimentions[1])/res)
+        obj_l = int(float(dimentions[0])/res)
         
 
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
@@ -118,7 +197,8 @@ class GenerateEgoCentricFrontLayout(object):
             for shelf in shelfs:
                 shelf_images_data = self.generate_layout_rack(shelf_images_data, 
                                                               shelf["object_type"], 
-                                                              self.get_locations(shelf["object_ego_location"]),
+                                                              self.get_locations(shelf["object_location"], shelf["object_orientation"],
+                                                                    shelf["camera_location"], shelf["camera_rotation"]),
                                                               shelf["object_dimensions"],
                                                               shelf["ego_rotation_y"],
                                                               shelf["shelf_number"],
@@ -127,7 +207,8 @@ class GenerateEgoCentricFrontLayout(object):
                 # print(box)
                 shelf_images_data = self.generate_layout_Box(shelf_images_data, 
                                                           box["object_type"], 
-                                                          self.get_locations(box["object_ego_location"]),
+                                                          self.get_locations(box["object_location"], box["object_orientation"],
+                                                                    box["camera_location"], box["camera_rotation"]),
                                                           box["object_dimensions"],
                                                           box["ego_rotation_y"],
                                                           box["shelf_number"])

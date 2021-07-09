@@ -7,7 +7,7 @@ import Constants
 from FileNameManager import filePathManager
 from preProcessing.FillRackGaps import fillRackGaps
 
-class GenerateEgoCentricTopLayout(object):
+class GenerateShelfCentricTopLayout(object):
     def __init__(self):
         self.length = Constants.LENGTH
         self.width = Constants.WIDTH
@@ -193,8 +193,9 @@ class GenerateEgoCentricTopLayout(object):
             for shelf in shelfs:
                 shelf_images_data = self.generate_layout_rack(shelf_images_data, 
                                                               shelf["object_type"], 
-                                                              self.get_locations(shelf["object_location"], shelf["object_orientation"],
-                                                                    shelf["camera_location"], shelf["camera_rotation"]),
+                                                            #   self.get_locations(shelf["object_location"], shelf["object_orientation"],
+                                                            #         shelf["camera_location"], shelf["camera_rotation"]),
+                                                              shelf["object_location"],
                                                               shelf["object_dimensions"],
                                                               shelf["ego_rotation_y"],
                                                               shelf["shelf_number"])
@@ -202,8 +203,9 @@ class GenerateEgoCentricTopLayout(object):
                 # print(box)
                 shelf_images_data = self.generate_layout_Box(shelf_images_data, 
                                                           box["object_type"], 
-                                                          self.get_locations(box["object_location"], box["object_orientation"],
-                                                                    box["camera_location"], box["camera_rotation"]),
+                                                        #   self.get_locations(box["object_location"], box["object_orientation"],
+                                                        #             box["camera_location"], box["camera_rotation"]),
+                                                          box["object_location"],
                                                           box["object_dimensions"],
                                                           box["ego_rotation_y"],
                                                           box["shelf_number"])
@@ -354,4 +356,4 @@ class GenerateEgoCentricTopLayout(object):
         file_path = dump_path +"top"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
-generateEgoCentricTopLayout = GenerateEgoCentricTopLayout()
+generateShelfCentricTopLayout = GenerateShelfCentricTopLayout()

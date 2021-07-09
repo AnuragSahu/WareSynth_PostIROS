@@ -5,7 +5,7 @@ import sys
 class FilePathManager(object):
     def __init__(self):
         
-        self.datasetDumpDirectory = "../../unity_retail/WareSynth/Assets/"
+        self.datasetDumpDirectory = "../../unity_retail/WareSynth/Assets/Annote/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0

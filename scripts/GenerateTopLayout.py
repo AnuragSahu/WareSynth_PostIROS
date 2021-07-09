@@ -17,12 +17,15 @@ class GenerateTopLayout(object):
         self.annotations = annotations
         shelf_layouts= []
         box_layouts = []
+        box_counts = 0
         min_shelf_number, max_shelf_number = self.get_shelf_range()
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             shelf, boxes = self.get_shelf_and_boxes(shelf_number)
+            box_counts += len(boxes)
             shelf, boxes = self.calculateCenter(shelf, boxes)
             shelf_layouts.append(self.getShelfLayout(shelf))
             box_layouts.append(self.getBoxesLayouts(boxes))
+        print(box_counts)
         self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
     
     def get_shelf_range(self):
@@ -47,10 +50,10 @@ class GenerateTopLayout(object):
         return [shelf,boxes]
 
     def calculateCenter(self, shelf, boxes):
-        center_x, center_y = shelf["location"][:2]
+        center_x, center_y = shelf["object_location"][0], shelf["object_location"][2]
         shelf["center"][:2] = [0,0]
         for box in boxes:
-            box_center_x, box_center_y = box["location"][:2]
+            box_center_x, box_center_y = box["object_location"][0], box["object_location"][2]
             box["center"] = [float(box_center_x) - float(center_x), float(box_center_y)-float(center_y)]
         return [shelf, boxes]
 
@@ -86,8 +89,8 @@ class GenerateTopLayout(object):
         center_x = int(float(x) / self.res + self.width / (2*self.res))
         center_y = int(float(y) / self.res + self.length / (2*self.res))
         orient = float(annotation["rotation_y"])
-        dimensions = annotation["dimensions"]
-        obj_w = int(float(dimensions[1])/self.res)
+        dimensions = annotation["object_dimensions"]
+        obj_w = int(float(dimensions[2])/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)

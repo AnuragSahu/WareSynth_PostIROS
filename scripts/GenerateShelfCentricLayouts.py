@@ -5,8 +5,11 @@ import numpy as np
 import mathutils
 import math
 from FileNameManager import filePathManager
-from GenerateEgoCentricTopLayout import generateEgoCentricTopLayout
-from GenerateEgoCentricFrontLayout import generateEgoCentricFrontLayout
+from GenerateShelfCentricTopLayout import generateShelfCentricTopLayout
+from GenerateShelfCentricFrontLayout import generateShelfCentricFrontLayout
+from GenerateFrontalLayout import generateFrontalLayout
+
+from GenerateTopLayout import generateTopLayout
 from GenerateFrontalLayout import generateFrontalLayout
 
 class GenerateLayouts(object):
@@ -112,6 +115,7 @@ class GenerateLayouts(object):
             annotationID = 0
             self.max_shelf_number = 0
             self.annotations = {}
+            # box_count = 0
             for annotationLine in annotationLines:
                 annotationLine = annotationLine.strip('\n')
                 labels = annotationLine.split(", ")
@@ -121,6 +125,7 @@ class GenerateLayouts(object):
                     object_type = "Shelf"
                     object_dimensions = self.dimensions_map["Shelf"]
                 else:
+                    # box_count += 1
                     object_type = "Box"
                     object_dimensions = self.dimensions_map[labels[0]]
 
@@ -131,7 +136,7 @@ class GenerateLayouts(object):
                 object_scale = labels[9:12]
                 camera_location = labels[12:15]
                 camera_rotation = labels[15:18]
-                camera_rotation = [float(i)*3.14 for i in camera_rotation]
+                camera_rotation = [float(i)*np.pi for i in camera_rotation]
 
                 cutting_plane_limits = {}
 
@@ -147,8 +152,8 @@ class GenerateLayouts(object):
                 object_location = [float(i) for i in object_location]
                 object_location[1] += object_dimensions[1]/2
                 
-                print("Object Location : ",object_location)
-                print("Camera Location : ",camera_location)
+                # print("Object Location : ",object_location)
+                # print("Camera Location : ",camera_location)
                 objectEgoCentricLocation = self.get_locations(object_location, object_orientation,
                                                                     camera_location, camera_rotation)
 
@@ -162,13 +167,15 @@ class GenerateLayouts(object):
                 
                 
                 if(rack_in_focus == labels[1] or not Constants.RACK_IN_FOCUS):
+                    # if(object_type == "BOX"):
+                    #     box_count = box_count + 1
                     self.annotations[annotationID] = {
                         "object_type" : object_type,
                         "shelf_number" : shelf_number,
                         "object_location" : object_location,
                         "object_ego_location" : objectEgoCentricLocation,
                         "object_orientation" : object_orientation,
-                        "ego_rotation_y" : objectEgoCentricRotation_y,
+                        "rotation_y" : objectEgoCentricRotation_y,
                         "object_scale" : object_scale,
                         "object_dimensions" : object_dimensions,
                         "camera_location" : camera_location,
@@ -180,10 +187,13 @@ class GenerateLayouts(object):
                 if(shelf_number > self.max_shelf_number):
                     self.max_shelf_number = shelf_number
                 annotationID += 1
-    
-            generateEgoCentricTopLayout.writeLayout(self.annotations, ID, dump_path)
-            generateEgoCentricFrontLayout.writeLayout(self.annotations, ID, dump_path)
-            #generateFrontalLayout.writeLayout(self.annotations, ID, dump_path)
+
+            # print(box_count)
+            # generateShelfCentricTopLayout.writeLayout(self.annotations, ID, dump_path)
+            # generateShelfCentricFrontLayout.writeLayout(self.annotations, ID, dump_path)
+            
+            generateTopLayout.writeLayout(self.annotations, ID, dump_path)
+            generateFrontalLayout.writeLayout(self.annotations, ID, dump_path)
             
     def get_shelf_and_boxes(self, shelfNumber):
         shelf = None

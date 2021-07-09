@@ -260,17 +260,17 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
     #    return "." + str(num).zfill(3)
 
 
-    # all_box_loc = './objects/primitives/boxes_avinash/'
-    all_box_loc = '../synthetic_warehouse/objects/primitives/TextureCorrectedBoxes/'
+    #all_box_loc = './objects/primitives/boxes_avinash/'
+    all_box_loc = './objects/primitives/TextureCorrectedBoxes/'
     rack_loc = './objects/primitives/Racks/rack_modular2.dae'
-    shelf_loc = '../synthetic_warehouse/objects/primitives/Racks/Shelf.dae'
-    support_loc = '../synthetic_warehouse/objects/primitives/Racks/Support.dae'
-    reference_line_up_loc = '../synthetic_warehouse/objects/primitives/blenderproc_objects/LineUp/LineUp.dae'
-    reference_line_down_loc = '../synthetic_warehouse/objects/primitives/blenderproc_objects/LineDown/LineDown.dae'
+    shelf_loc = './objects/primitives/Racks/Shelf.dae'
+    support_loc = './objects/primitives/Racks/Support.dae'
+    reference_line_up_loc = './objects/primitives/blenderproc_objects/LineUp/LineUp.dae'
+    reference_line_down_loc = './objects/primitives/blenderproc_objects/LineDown/LineDown.dae'
     pallet_loc = './objects/primitives/pallet/pallet.dae'
-    #fire_ext_loc = './objects/primitives/Extinguisher/fire1.dae'
-    #forklift_loc = './objects/primitives/Forklift/final.obj'
-    #CB_loc = './objects/primitives/ConveyerBelt/final.obj'
+    fire_ext_loc = './objects/primitives/Extinguisher/fire1.dae'
+    forklift_loc = './objects/primitives/Forklift/final.obj'
+    CB_loc = './objects/primitives/ConveyerBelt/final.obj'
     #extinguisher_coords = [[10.5, 46.7, 2.5], [-10.5, 46.7, 2.5], [-10.5, -44.45, 2.5], [10.5, -44.45, 2.5]]
     #CB_coords = [[6.236, 1.849, 0], [6.405, 32.5, 0]]
     #forklift_coords = [[0, 10.78, 0], [0, 42.69, 0]]

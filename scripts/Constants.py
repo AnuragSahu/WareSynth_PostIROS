@@ -16,8 +16,8 @@ LOG_FILE_PATH = "./dataGenerationLogs.txt"
 
 # For Layout Generation
 MAX_SHELVES = 4
-LENGTH = 20
-WIDTH = 20
+LENGTH = 8
+WIDTH = 8
 LAYOUT_SIZE = 512.0
 MAX_SHELF_DIFF_VAL = 4
 
@@ -26,3 +26,5 @@ BLANK = 0
 FREE_SPACE = 115
 BOX = 255
 GAP = 200 # Fill some appropriate gap RGB value
+
+RACK_IN_FOCUS = True

@@ -1,13 +1,13 @@
 import Constants
+import mathutils
 import numpy as np
 import cv2
-import mathutils
 from PIL import Image, ImageDraw
 import Constants
 from FileNameManager import filePathManager
 from preProcessing.FillRackGaps import fillRackGaps
 
-class GenerateEgoCentricTopLayout(object):
+class GenerateShelfCentricFrontLayout(object):
     def __init__(self):
         self.length = Constants.LENGTH
         self.width = Constants.WIDTH
@@ -15,7 +15,7 @@ class GenerateEgoCentricTopLayout(object):
         self.res = self.length / self.layout_size
         self.DEBUG = True
         self.annotations = {}
-    
+
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
         R = np.array([[np.cos(theta[1])*np.cos(theta[2]),np.sin(theta[0])*np.sin(theta[1])*np.cos(theta[2]) - np.sin(theta[2])*np.cos(theta[0]), np.sin(theta[1])*np.cos(theta[0])*np.cos(theta[2]) + np.sin(theta[0])*np.sin(theta[2])],
@@ -28,13 +28,18 @@ class GenerateEgoCentricTopLayout(object):
                       [round(R[2,0],pSet), round(R[2,1], pSet), round(R[2,2],pSet)]])
 
         return R
+    # def get_locations(self, locations):
+    #     x = locations[0]
+    #     y = locations[1]
+    #     z = locations[2]
+    #     return [x,y,z]
 
     def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
         R_bcam2cv = mathutils.Matrix(
             ((1, 0,  0),
-            (0, 1, 0),
-            (0, 0, 1)))
+            (0, -1, 0),
+            (0, 0, -1)))
         R_bcam2cv = np.array(R_bcam2cv)
         # Transpose since the rotation is object rotation, 
         # and we want coordinate rotation
@@ -95,12 +100,6 @@ class GenerateEgoCentricTopLayout(object):
         #locations = [str(i) for i in locations]
         return locations
 
-    # def get_locations(self, locations):
-    #     x = locations[0]
-    #     y = locations[1]
-    #     z = locations[2]
-    #     return [x,y,z]
-
     def get_rect(self, x, y, width, height, theta):
         rect = np.array([(-width / 2, -height / 2), (width / 2, -height / 2),
                          (width / 2, height / 2), (-width / 2, height / 2),
@@ -114,24 +113,27 @@ class GenerateEgoCentricTopLayout(object):
 
         return transformed_rect
 
-    def generate_layout_rack(self, img_data, label,locations, dimentions, rotation_y, rack_number):
+    def generate_layout_rack(self, img_data, label,locations, dimentions, rotation_y, rack_number, interShelfDistance):
         
         #print(label,locations, dimentions, rotation_y, rack_number)
         imgs = img_data
-        res = self.res
+        res = self. res
         length = self.length
         width = self.width
 
         center_x = int(float(locations[0]) / res + width / (2*res))
-        center_y = int(float(locations[2]) / res)# + length / (2*res))
+        center_y = int(float(locations[1]) / res + length / (2*res))
+        # center_y = int(float(locations[1]) / res + length / (2*res))
 
-        orient = -1 * float(rotation_y)
+        # orient = -1 * float(rotation_y)
+        orient = 0
 
-        obj_w = int(float(dimentions[2])/res)
+        # obj_w = int(float(dimentions[1])/res)
         obj_l = int(float(dimentions[0])/res)
+        obj_w = int(float(interShelfDistance)/res)
 
         # rectangle = get_rect(center_x, center_y, obj_l, obj_w, orient)
-        rectangle = self.get_rect(center_x, int(length/res) - center_y, obj_l, obj_w, orient)
+        rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
 
         draw = ImageDraw.Draw(imgs)
 
@@ -145,7 +147,7 @@ class GenerateEgoCentricTopLayout(object):
         
         #print(label,locations, dimentions, rotation_y, rack_number)
         imgs = img_data
-        res = self.res
+        res = self. res
         length = self.length
         width = self.width
 
@@ -153,15 +155,17 @@ class GenerateEgoCentricTopLayout(object):
         center_x = int(float(locations[0]) / res + width / (2*res))
         # center_x = 256
         # center_y = int(float(locations[1]) / res + length / (2*res))
-        center_y = int(float(locations[2]) / res)# + length / (2*res))
+        center_y = int(float(locations[1]) / res + length / (2*res))
         # center_y = 256
 
-        orient = -1 * float(rotation_y)
+        # orient = -1 * float(rotation_y)
+        orient = 0
 
-        obj_w = int(float(dimentions[2])/res)
+        obj_w = int(float(dimentions[1])/res)
         obj_l = int(float(dimentions[0])/res)
+        
 
-        rectangle = self.get_rect(center_x, int(length/res) - center_y, obj_l, obj_w, orient)
+        rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
 
         draw = ImageDraw.Draw(imgs)
 
@@ -174,7 +178,7 @@ class GenerateEgoCentricTopLayout(object):
         self.annotations = annotations
         min_shelf_number, max_shelf_number = self.get_shelf_range()
 
-        topEgoLayouts = []
+        frontEgoLayouts = []
 
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             shelfs, boxes = self.get_shelf_and_boxes(shelf_number)
@@ -197,7 +201,8 @@ class GenerateEgoCentricTopLayout(object):
                                                                     shelf["camera_location"], shelf["camera_rotation"]),
                                                               shelf["object_dimensions"],
                                                               shelf["ego_rotation_y"],
-                                                              shelf["shelf_number"])
+                                                              shelf["shelf_number"],
+                                                              shelf["interShelfDistance"])
             for box in boxes:
                 # print(box)
                 shelf_images_data = self.generate_layout_Box(shelf_images_data, 
@@ -216,29 +221,29 @@ class GenerateEgoCentricTopLayout(object):
             # comment out this line if you dont want to have filled gaps
             # shelf_images_data = fillRackGaps.process(shelf_images_data, Constants.GAP)
             
-            topEgoLayouts.append(shelf_images_data)
+            frontEgoLayouts.append(shelf_images_data)
             #shelf_images_data.save("layout_"+str(ID)+"_"+str(shelf_number)+".jpg")
         # self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
-        self.saveNpyFiles(topEgoLayouts, ID, dump_path)
+        self.saveNpyFiles(frontEgoLayouts, ID, dump_path)
 
-    def saveNpyFiles(self, topEgoLayouts, ID, dump_path):
+    def saveNpyFiles(self, frontEgoLayouts, ID, dump_path):
         final_layout_racks = []
         for shelf in range(Constants.MAX_SHELVES):
-            if(shelf >= len(topEgoLayouts)):
+            if(shelf >= len(frontEgoLayouts)):
                 pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
             else:
-                pixels = list(topEgoLayouts[shelf].getdata())
-                width, height = topEgoLayouts[shelf].size
+                pixels = list(frontEgoLayouts[shelf].getdata())
+                width, height = frontEgoLayouts[shelf].size
                 pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
     
             pixels = np.array(pixels)    
 
             if(self.DEBUG):
-                cv2.imwrite(filePathManager.getDebugRackLayoutPath("top",ID, shelf), pixels)
+                cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, shelf), pixels)
                 filePathManager.updateDebugImageNumber()
             final_layout_racks.append(pixels)
         final_layout_racks = np.array(final_layout_racks)
-        file_path = dump_path +"top"+ ID[:-4] + ".npy"
+        file_path = dump_path +"front"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
     
@@ -347,11 +352,11 @@ class GenerateEgoCentricTopLayout(object):
                 pixels = np.array(pixelsb)    
 
             if(self.DEBUG):
-                cv2.imwrite(filePathManager.getDebugRackLayoutPath("top",ID, shelf), pixels)
+                cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, shelf), pixels)
                 filePathManager.updateDebugImageNumber()
             final_layout_racks.append(pixels)
         final_layout_racks = np.array(final_layout_racks)
-        file_path = dump_path +"top"+ ID[:-4] + ".npy"
+        file_path = dump_path +"front"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
-generateEgoCentricTopLayout = GenerateEgoCentricTopLayout()
+generateShelfCentricFrontLayout = GenerateShelfCentricFrontLayout()
