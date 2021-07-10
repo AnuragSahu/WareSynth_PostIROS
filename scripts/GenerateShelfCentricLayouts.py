@@ -116,7 +116,7 @@ class GenerateLayouts(object):
                     cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
 
                 percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
-                if  percent_visible_x == 0 or percent_visible_y == 0: #or whatever threshold
+                if  percent_visible_x == 0 or percent_visible_y < 20: #or whatever threshold
                     continue
                 
                 if labels[0][0] == 'S':
@@ -173,7 +173,7 @@ class GenerateLayouts(object):
             min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
                 shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
-                if shelf_and_box_val[0] != None:
+                if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
           
             generateTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
