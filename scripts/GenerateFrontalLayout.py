@@ -14,21 +14,23 @@ class GenerateFrontalLayout(object):
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
         
-        shelf_layouts = []
-        box_layouts = []
+        shelf_layouts = {}
+        box_layouts = {}
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
+            if shelf_number not in shelf_and_boxes:
+                continue
             shelf, boxes = shelf_and_boxes[shelf_number]
             interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
             centerX, centerY, _ = shelf["object_location"]
             camera_rotation_z = shelf["camera_rotation"][1]
             layout_shelf = self.generateFrontalLayoutShelf(shelf, centerX , centerY, interShelfDistance)
             layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
-            shelf_layouts.append(layout_shelf)
+            shelf_layouts[shelf_number] = layout_shelf
 
             layout_box = self.generateFrontalLayoutBoxes(boxes, centerX, centerY)
             layout_box = self.accountCameraRotation(layout_box, camera_rotation_z)
-            box_layouts.append(layout_box)
+            box_layouts[shelf_number] = layout_box
 
         self.write_layouts(shelf_layouts, box_layouts, interShelfDistance, ID, dump_path)
 
@@ -108,7 +110,7 @@ class GenerateFrontalLayout(object):
     def write_layouts(self, rack_layouts, box_layouts, shelfHeightDifference, ID, dump_path):
         final_layout_racks = []
         for shelf in range(Constants.MAX_SHELVES):
-            if(shelf >= len(rack_layouts)):
+            if(shelf not in rack_layouts):
                 pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
             else:
                 pixels = list(rack_layouts[shelf].getdata())

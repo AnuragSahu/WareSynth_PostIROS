@@ -15,15 +15,17 @@ class GenerateTopLayout(object):
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
         
-        shelf_layouts= []
-        box_layouts = []
+        shelf_layouts = {}
+        box_layouts = {}
         # box_counts = 0
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
+            if shelf_number not in shelf_and_boxes:
+                continue
             shelf, boxes = shelf_and_boxes[shelf_number]
             # box_counts += len(boxes)
             shelf, boxes = self.calculateCenter(shelf, boxes)
-            shelf_layouts.append(self.getShelfLayout(shelf))
-            box_layouts.append(self.getBoxesLayouts(boxes))
+            shelf_layouts[shelf_number] = self.getShelfLayout(shelf)
+            box_layouts[shelf_number] = self.getBoxesLayouts(boxes)
         # print(box_counts)
         self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
     
@@ -92,7 +94,7 @@ class GenerateTopLayout(object):
         final_layout_racks = []
         for shelf in range(Constants.MAX_SHELVES):
             #print(rack_layouts)
-            if(shelf >= len(rack_layouts)):
+            if(shelf not in rack_layouts):
                 pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
             else:
                 pixels = list(rack_layouts[shelf].getdata())

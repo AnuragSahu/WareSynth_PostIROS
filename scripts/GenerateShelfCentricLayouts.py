@@ -40,6 +40,35 @@ class GenerateLayouts(object):
 
         return R
 
+    def get_percentage_visible(self, cutting_planes_visible):
+        percents_x = []
+        percents_y = []
+
+        # bounds_vis[0] = side_tracker;
+		
+		# bounds_vis[1] = minX[1];
+		# bounds_vis[2] = maxX[1];
+		# bounds_vis[3] = minY[1];
+		# bounds_vis[4] = maxY[1];
+		
+		# bounds_vis[5] = minX[0];
+		# bounds_vis[6] = maxX[0];
+		# bounds_vis[7] = minY[0];
+		# bounds_vis[8] = maxY[0];
+        # Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
+		
+        # do right and left things here
+        for plane in cutting_planes_visible:
+            bounds_vis = cutting_planes_visible[plane]
+
+            if bounds_vis[0] == 0:
+                percents_x.append(0)
+                percents_y.append(0)
+            else:
+                percents_x.append( (bounds_vis[2] - bounds_vis[1])/(bounds_vis[6] - bounds_vis[5]) )
+                percents_y.append( (bounds_vis[4] - bounds_vis[3])/(bounds_vis[8] - bounds_vis[7]) )
+
+        return min(percents_x), min(percents_y)  
 
     def read_annotations(self, annotationsPath, dump_path):
         files_split = {}
@@ -77,8 +106,19 @@ class GenerateLayouts(object):
             for annotationLine in annotationLines:
                 annotationLine = annotationLine.strip('\n')
                 labels = annotationLine.split(", ")
-                object_type = labels[0]
 
+                cutting_plane_limits = {}
+
+                for i in range(18, 18+30, 10):
+                    one_plane = labels[i:i+10]
+                    # print(one_plane)
+                    #can parse here
+                    cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
+
+                percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
+                if  percent_visible_x == 0 or percent_visible_y == 0: #or whatever threshold
+                    continue
+                
                 if labels[0][0] == 'S':
                     object_type = "Shelf"
                     object_dimensions = self.dimensions_map["Shelf"]
@@ -95,14 +135,6 @@ class GenerateLayouts(object):
                 camera_location = labels[12:15]
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
-
-                cutting_plane_limits = {}
-
-                for i in range(18, 18+30, 10):
-                    one_plane = labels[i:i+10]
-                    # print(one_plane)
-                    #can parse here
-                    cutting_plane_limits[one_plane[0]] = one_plane[1:]
 
                 interShelfDistance = self.dimensions_map["Shelf"][1]
                 
@@ -140,7 +172,9 @@ class GenerateLayouts(object):
             shelfs_and_boxes = {}
             min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
-                shelfs_and_boxes[shelf_number] = self.get_shelf_and_boxes(shelf_number, curr_annotations)
+                shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
+                if shelf_and_box_val[0] != None:
+                    shelfs_and_boxes[shelf_number] = shelf_and_box_val
           
             generateTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateFrontalLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
@@ -154,8 +188,6 @@ class GenerateLayouts(object):
                     shelf = annotation
                 elif(annotation["object_type"] == "Box"):
                     boxes.append(annotation)
-        if shelf == None:
-            boxes = []
         return (shelf,boxes)
 
     def getInterShelfDistance(self):
