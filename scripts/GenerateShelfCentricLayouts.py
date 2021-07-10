@@ -25,7 +25,7 @@ class GenerateLayouts(object):
         
                 self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
         # print(self.dimensions_map)
-        self.num_threads = 4
+        self.num_threads = 1
 
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
@@ -78,7 +78,7 @@ class GenerateLayouts(object):
 
         c = 0
         for file in glob(join(annotationsPath, '*.txt')):
-            files_split[c%4].append(file)
+            files_split[c%self.num_threads].append(file)
             c += 1
 
         threads = []
@@ -116,7 +116,7 @@ class GenerateLayouts(object):
                     cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
 
                 percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
-                if  percent_visible_x == 0 or percent_visible_y < 20: #or whatever threshold
+                if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
                     continue
                 
                 if labels[0][0] == 'S':
