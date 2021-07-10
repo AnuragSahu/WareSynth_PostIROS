@@ -261,12 +261,12 @@ def make_warehouse(no_rack_column, prob_of_box, corridor_width, num_rack_y, dens
 
 
     # all_box_loc = './objects/primitives/boxes_avinash/'
-    all_box_loc = '../synthetic_warehouse/objects/primitives/TextureCorrectedBoxes/'
+    all_box_loc = './objects/primitives/TextureCorrectedBoxes/'
     rack_loc = './objects/primitives/Racks/rack_modular2.dae'
-    shelf_loc = '../synthetic_warehouse/objects/primitives/Racks/Shelf.dae'
-    support_loc = '../synthetic_warehouse/objects/primitives/Racks/Support.dae'
-    reference_line_up_loc = '../synthetic_warehouse/objects/primitives/blenderproc_objects/LineUp/LineUp.dae'
-    reference_line_down_loc = '../synthetic_warehouse/objects/primitives/blenderproc_objects/LineDown/LineDown.dae'
+    shelf_loc = './objects/primitives/Racks/Shelf.dae'
+    support_loc = './objects/primitives/Racks/Support.dae'
+    reference_line_up_loc = './objects/primitives/blenderproc_objects/LineUp/LineUp.dae'
+    reference_line_down_loc = './objects/primitives/blenderproc_objects/LineDown/LineDown.dae'
     pallet_loc = './objects/primitives/pallet/pallet.dae'
     #fire_ext_loc = './objects/primitives/Extinguisher/fire1.dae'
     #forklift_loc = './objects/primitives/Forklift/final.obj'
