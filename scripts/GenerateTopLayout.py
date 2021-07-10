@@ -11,44 +11,22 @@ class GenerateTopLayout(object):
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
         self.DEBUG = True
-        self.annotations = {}
+        # self.annotations = {}
 
-    def writeLayout(self, annotations,  ID, dump_path):
-        self.annotations = annotations
+    def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
+        
         shelf_layouts= []
         box_layouts = []
-        box_counts = 0
-        min_shelf_number, max_shelf_number = self.get_shelf_range()
+        # box_counts = 0
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
-            shelf, boxes = self.get_shelf_and_boxes(shelf_number)
-            box_counts += len(boxes)
+            shelf, boxes = shelf_and_boxes[shelf_number]
+            # box_counts += len(boxes)
             shelf, boxes = self.calculateCenter(shelf, boxes)
             shelf_layouts.append(self.getShelfLayout(shelf))
             box_layouts.append(self.getBoxesLayouts(boxes))
-        print(box_counts)
+        # print(box_counts)
         self.write_layouts(shelf_layouts, box_layouts, ID, dump_path)
     
-    def get_shelf_range(self):
-        min_shelf = 99999999
-        max_shelf = 0
-        for annotation in self.annotations.values():
-            if(annotation["shelf_number"] < min_shelf):
-                min_shelf = annotation["shelf_number"]
-            if(annotation["shelf_number"] > max_shelf):
-                max_shelf = annotation["shelf_number"]
-        return [min_shelf, max_shelf]
-    
-    def get_shelf_and_boxes(self, shelfNumber):
-        shelf = None
-        boxes = []
-        for annotation in self.annotations.values():
-            if(annotation["shelf_number"] == shelfNumber):
-                if(annotation["object_type"] == "Shelf"):
-                    shelf = annotation
-                elif(annotation["object_type"] == "Box"):
-                    boxes.append(annotation)
-        return [shelf,boxes]
-
     def calculateCenter(self, shelf, boxes):
         center_x, center_y = shelf["object_location"][0], shelf["object_location"][2]
         shelf["center"][:2] = [0,0]

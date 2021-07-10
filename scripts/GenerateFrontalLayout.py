@@ -11,22 +11,17 @@ class GenerateFrontalLayout(object):
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
         self.DEBUG = True
-        self.annotations = {}
 
-    def writeLayout(self, annotations, ID, dump_path):
-        self.annotations = annotations
-        min_shelf_number, _ = self.get_shelf_range()
+    def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
+        
         shelf_layouts = []
         box_layouts = []
-        min_shelf_number, max_shelf_number = self.get_shelf_range()
-        #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance()
+        #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
-            # interShelfDistance = self.annotations["interShelfDistance"]
-            shelf, boxes = self.get_shelf_and_boxes(shelf_number)
+            shelf, boxes = shelf_and_boxes[shelf_number]
             interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
             centerX, centerY, _ = shelf["object_location"]
             camera_rotation_z = shelf["camera_rotation"][1]
-            # print(camera_rotation_z)
             layout_shelf = self.generateFrontalLayoutShelf(shelf, centerX , centerY, interShelfDistance)
             layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
             shelf_layouts.append(layout_shelf)
@@ -34,6 +29,7 @@ class GenerateFrontalLayout(object):
             layout_box = self.generateFrontalLayoutBoxes(boxes, centerX, centerY)
             layout_box = self.accountCameraRotation(layout_box, camera_rotation_z)
             box_layouts.append(layout_box)
+
         self.write_layouts(shelf_layouts, box_layouts, interShelfDistance, ID, dump_path)
 
     def generateFrontalLayoutShelf(self, annotation, img_x, img_y, obj_w):
@@ -95,18 +91,7 @@ class GenerateFrontalLayout(object):
         transformed_rect = np.dot(rect, R) + offset
         return transformed_rect
 
-    def get_shelf_and_boxes(self, shelfNumber):
-        shelf = None
-        boxes = []
-        for annotation in self.annotations.values():
-            if(annotation["shelf_number"] == shelfNumber):
-                if(annotation["object_type"] == "Shelf"):
-                    shelf = annotation
-                elif(annotation["object_type"] == "Box"):
-                    boxes.append(annotation)
-        return [shelf,boxes]
-
-    def getInterShelfDistance(self):
+    def getInterShelfDistance(self, min_shelf):
         min_shelf, _ = self.get_shelf_range()
         shelf_1, shelf_2 = min_shelf, min_shelf+1
         if(shelf_1 == None or shelf_2 == None):
@@ -119,16 +104,6 @@ class GenerateFrontalLayout(object):
             shelfHeightDifference = abs(float(heightOftopShelf) - float(heightOfBottomShelf))
         return shelfHeightDifference
 
-    def get_shelf_range(self):
-        min_shelf = 99999999
-        max_shelf = 0
-        for annotation in self.annotations.values():
-            if(annotation["shelf_number"] < min_shelf):
-                min_shelf = annotation["shelf_number"]
-            if(annotation["shelf_number"] > max_shelf):
-                max_shelf = annotation["shelf_number"]
-
-        return [min_shelf, max_shelf]
 
     def write_layouts(self, rack_layouts, box_layouts, shelfHeightDifference, ID, dump_path):
         final_layout_racks = []
