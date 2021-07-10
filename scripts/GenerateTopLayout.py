@@ -1,7 +1,7 @@
 import Constants
 import numpy as np
 import cv2
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from FileNameManager import filePathManager
 
 class GenerateTopLayout(object):
@@ -10,7 +10,7 @@ class GenerateTopLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = False
         # self.annotations = {}
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
@@ -44,7 +44,7 @@ class GenerateTopLayout(object):
         )
         layout = Image.fromarray(layout)
         layout =  self.getOneLayout(shelf,layout, 115)
-        return self.accountCameraRotation(shelf["camera_rotation"], layout)
+        return self.accountCameraRotation(shelf["camera_rotation"][1], layout)
 
     def getBoxesLayouts(self, boxes):
         layout = np.zeros(
@@ -57,11 +57,15 @@ class GenerateTopLayout(object):
             camera_layout = box["camera_rotation"]
             layout = self.getOneLayout(box, layout, 255)
         if(camera_layout != None): # rotate only if there is/are some boxes in the shelf
-            layout = self.accountCameraRotation(camera_layout, layout)
+            layout = self.accountCameraRotation(camera_layout[1], layout)
         return layout
 
     def accountCameraRotation(self,camera_rotation, layout):
-        layout = layout.rotate(float(camera_rotation[2]) * 180 / np.pi)
+        # print(camera_rotation)
+        if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
+            pass
+        else:
+            layout = ImageOps.mirror(layout)
         return layout
     
     def getOneLayout(self,annotation, layout, fill):
