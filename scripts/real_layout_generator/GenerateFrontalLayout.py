@@ -19,10 +19,12 @@ class GenerateFrontalLayout(object):
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             if shelf_number not in shelf_and_boxes:
+                # print("Entered Here")
                 continue
             shelf, boxes = shelf_and_boxes[shelf_number]
-            interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
+            interShelfDistance = float(shelf["object_dimensions"][1]) #shelf["interShelfDistance"])
             centerX, centerY, _ = shelf["object_location"]
+            # print("Shelf Location : ", shelf["object_location"])
             camera_rotation_z = shelf["camera_rotation"][1]
             layout_shelf = self.generateFrontalLayoutShelf(shelf, centerX , centerY, interShelfDistance)
             layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
@@ -44,6 +46,7 @@ class GenerateFrontalLayout(object):
         center_x = int((float(img_x)-float(x)) / self.res + self.width / (2*self.res))
         center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
         # center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
+        print("Shelf Location : ", center_x, center_y)
         orient = 0
         dimensions = annotation["object_dimensions"]
         # print("FREE SPACE : ", obj_w)
@@ -56,8 +59,8 @@ class GenerateFrontalLayout(object):
         return layout
 
     def accountCameraRotation(self, layout, camera_rotation):
-        # if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
-        #     layout = ImageOps.mirror(layout)
+        if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
+            layout = ImageOps.mirror(layout)
         return layout
 
     def generateFrontalLayoutBoxes(self, annotations, img_x, img_y):
@@ -70,6 +73,8 @@ class GenerateFrontalLayout(object):
             x,y,_ = annotation["object_location"]
             center_x = int((float(img_x)-float(x)) / self.res + self.width / (2*self.res))
             center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
+            # print(annotation["object_type"],img_x-x,img_y-y)
+            print("Box Location : ", center_x, center_y)
             orient = 0
             dimensions = annotation["object_dimensions"]
             # print("BOX",dimensions[2])
@@ -156,6 +161,6 @@ class GenerateFrontalLayout(object):
         # file_path = dump_path +"frontBox"+ ID[:-4]+ ".npy"
         # np.save(file_path,final_layouts_boxes)
     
-        np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
+        # np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
 
 generateFrontalLayout = GenerateFrontalLayout()

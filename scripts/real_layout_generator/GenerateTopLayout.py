@@ -62,10 +62,10 @@ class GenerateTopLayout(object):
 
     def accountCameraRotation(self,camera_rotation, layout):
         # print(camera_rotation)
-        # if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
-        #     pass
-        # else:
-        layout = ImageOps.mirror(layout)
+        if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
+            pass
+        else:
+            layout = ImageOps.mirror(layout)
         return layout
     
     def getOneLayout(self,annotation, layout, fill):
