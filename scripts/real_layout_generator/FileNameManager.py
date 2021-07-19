@@ -5,7 +5,7 @@ import sys
 class FilePathManager(object):
     def __init__(self):
         
-        self.datasetDumpDirectory = "/home/anurag/Research/real_images/LOCAL_WAREHOUSE/tst/sample_1/"
+        self.datasetDumpDirectory = "/home/anurag/Research/real_images/LOCAL_WAREHOUSE/tt/merged/"
         # self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
@@ -17,7 +17,7 @@ class FilePathManager(object):
         self.kittiDepthPath = self.datasetDumpDirectory + "KITTI/depth/"
         self.kittiVelodynePath = self.datasetDumpDirectory + "KITTI/velodyne/"
         self.anuragAnnotationsPath = self.datasetDumpDirectory
-        self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath #+ "Annotations/"
+        self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "Annotations/"
         self.anuragRGBImagesPath = self.anuragAnnotationsPath + "Images/"
         self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
         self.BoxProbValuesPath = self.anuragRGBImagesPath 
