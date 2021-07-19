@@ -10,7 +10,7 @@ class GenerateFrontalLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = False
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
         
@@ -109,9 +109,13 @@ class GenerateFrontalLayout(object):
 
     def write_layouts(self, rack_layouts, box_layouts, shelfHeightDifference, ID, dump_path):
         final_layout_racks = []
+        empty_npy = 0
+        write_track = 0
         for shelf in range(Constants.MAX_SHELVES):
             if(shelf not in rack_layouts):
-                pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
+                # pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
+                empty_npy += 1
+                continue
             else:
                 pixels = list(rack_layouts[shelf].getdata())
                 width, height = rack_layouts[shelf].size
@@ -130,11 +134,20 @@ class GenerateFrontalLayout(object):
                 pixels = np.array(pixelsb)    
 
 
+                if(self.DEBUG):
+                    cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, write_track), pixels)
+                    filePathManager.updateDebugImageNumber()
+                final_layout_racks.append(pixels)
+                write_track += 1
+
+        empty_pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
+        for shelf in range(empty_npy):
             if(self.DEBUG):
-                cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, shelf), pixels)
+                cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, write_track+shelf), empty_pixels)
                 filePathManager.updateDebugImageNumber()
-            final_layout_racks.append(pixels)
+            final_layout_racks.append(empty_pixels)    
         final_layout_racks = np.array(final_layout_racks)
+
         file_path = dump_path +"front"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
