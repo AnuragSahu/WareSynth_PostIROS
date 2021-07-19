@@ -17,7 +17,7 @@ import threading
 class GenerateLayouts(object):
     def __init__(self):
         self.dimensions_map = {}
-        with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
+        with open(filePathManager.datasetDumpDirectory+"../dimensions.txt") as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip('\n')
@@ -89,6 +89,15 @@ class GenerateLayouts(object):
 
         for t in threads:
             t.join()
+    
+    def get_shelf_number(self, position):
+        y = float(position[1])
+        if(y < 12 and y > 6):
+            return 0
+        if(y < 68 and y > 60):
+            return 1
+        if(y < 125 and y > 120):
+            return 2
 
     def generate_layout_from_file(self, files, dump_path):
         for file in files:
@@ -118,7 +127,8 @@ class GenerateLayouts(object):
                 # if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
                 #     continue
                 
-                if labels[0][0] == 'S':
+                print(self.dimensions_map)
+                if labels[0][0] == 's':
                     object_type = "Shelf"
                     object_dimensions = self.dimensions_map["Shelf"]
                 else:
@@ -126,10 +136,10 @@ class GenerateLayouts(object):
                     object_type = "Box"#labels[0]
                     object_dimensions = self.dimensions_map[labels[0]]
 
-                shelf_number = int(labels[1]) #int(labels[2].split('_')[-1])
+                shelf_number = self.get_shelf_number(labels[1:])#int(labels[1]) #int(labels[2].split('_')[-1])
                 
-
-                object_location = labels[2:]
+                print(shelf_number)
+                object_location = labels[1:]
                 object_orientation = [0,0,0]#labels[6:9]
                 object_scale = [1,1,1]#labels[9:12]
                 camera_location = [0,0,0]#labels[12:15]
@@ -138,6 +148,7 @@ class GenerateLayouts(object):
 
                 interShelfDistance = self.dimensions_map["Shelf"][1]
                 
+                # print(object_location)
                 
                 object_location = [float(i) for i in object_location]
                 object_location[0] += object_dimensions[0]/2

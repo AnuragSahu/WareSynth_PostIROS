@@ -15,9 +15,9 @@ VAL_SPLIT = "./datasets/val_files.txt"
 LOG_FILE_PATH = "./dataGenerationLogs.txt"
 
 # For Layout Generation
-MAX_SHELVES = 4
-LENGTH = 3
-WIDTH = 3
+MAX_SHELVES = 3
+LENGTH = 2
+WIDTH = 2
 LAYOUT_SIZE = 512.0
 MAX_SHELF_DIFF_VAL = 4
 
