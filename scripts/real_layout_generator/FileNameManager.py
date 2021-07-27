@@ -5,7 +5,7 @@ import sys
 class FilePathManager(object):
     def __init__(self):
         
-        self.datasetDumpDirectory = "/home/anurag/Research/real_images/LOCAL_WAREHOUSE/tt/merged/"
+        self.datasetDumpDirectory = "/home/anurag/Research/real_images/LOCAL_WAREHOUSE/tt/real_datasets/"
         # self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None

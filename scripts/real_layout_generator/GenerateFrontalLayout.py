@@ -58,7 +58,7 @@ class GenerateFrontalLayout(object):
 
     def accountCameraRotation(self, layout, camera_rotation):
         # if(float(camera_rotation) < np.pi and float(camera_rotation) > -np.pi):
-        #     layout = ImageOps.mirror(layout)
+        layout = ImageOps.mirror(layout)
         return layout
 
     def generateFrontalLayoutBoxes(self, annotations, img_x, img_y):

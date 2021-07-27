@@ -127,7 +127,7 @@ class GenerateLayouts(object):
                 # if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
                 #     continue
                 
-                print(self.dimensions_map)
+                # print(self.dimensions_map)
                 if labels[0][0] == 's':
                     object_type = "Shelf"
                     object_dimensions = self.dimensions_map["Shelf"]
@@ -138,7 +138,7 @@ class GenerateLayouts(object):
 
                 shelf_number = self.get_shelf_number(labels[1:])#int(labels[1]) #int(labels[2].split('_')[-1])
                 
-                print(shelf_number)
+                # print(shelf_number)
                 object_location = labels[1:]
                 object_orientation = [0,0,0]#labels[6:9]
                 object_scale = [1,1,1]#labels[9:12]
@@ -190,7 +190,7 @@ class GenerateLayouts(object):
                 if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
 
-            print("Here : ", min_shelf_number, max_shelf_number)
+            # print("Here : ", min_shelf_number, max_shelf_number)
           
             generateTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateFrontalLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
