@@ -76,10 +76,97 @@ class GenerateKITTIAnnotations(object):
                        [R_world2cv[2][0], R_world2cv[2][1], R_world2cv[2][2] , T_world2cv[2]]
         ])
         return np.array(RT)
+        
+    def get_bbs(self, cutting_planes_visible, object_dimensions, object_scale, is_shelf = True):
+        
+        # bounds_vis[0] = side_tracker;
+		
+		# bounds_vis[1] = minX[1];
+		# bounds_vis[2] = maxX[1];
+		# bounds_vis[3] = minY[1];
+		# bounds_vis[4] = maxY[1];
+		# bounds_vis[5] = minZ[1];
+		# bounds_vis[6] = maxZ[1];
+		
+		# bounds_vis[7] = minX[0];
+		# bounds_vis[8] = maxX[0];
+		# bounds_vis[9] = minY[0];
+		# bounds_vis[10] = maxY[0];
+		# bounds_vis[11] = minZ[0];
+		# bounds_vis[12] = maxZ[0];
+        # Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
+		
+        bounds_vis = cutting_planes_visible[0]
+        min_x = bounds_vis[2]
+        min_y = bounds_vis[4]
+        min_z = bounds_vis[6]
 
-    def get_percentage_visible(self, cutting_planes_visible):
+        max_x = bounds_vis[1]
+        max_y = bounds_vis[3]
+        max_z = bounds_vis[5]
+
+        for plane in cutting_planes_visible:
+            bounds_vis = cutting_planes_visible[plane]
+
+            # for x and y we take min of all maxes, because if the planes show 20 - 50 - 80 we want bbox to cover 20% part
+            max_x = min(max_x, bounds_vis[2])
+            max_y = min(max_y, bounds_vis[4])
+            max_z = max(max_z, bounds_vis[6])
+
+            min_x = max(min_x, bounds_vis[1])
+            min_y = max(min_y, bounds_vis[3])
+            min_z = min(min_z, bounds_vis[5])
+
+        if is_shelf:
+            max_y = min_y + 0.5 #TODO: Hardcoded arbitrary value, to account for planar nature of shelf
+
+        bbox_corners = [
+            (max_x, max_y, max_z),
+            (min_x, max_y, max_z),
+            (max_x, min_y, max_z),
+            (min_x, min_y, max_z),
+            (max_x, max_y, min_z),
+            (min_x, max_y, min_z),
+            (max_x, min_y, min_z),
+            (min_x, min_y, min_z),
+        ]
+
+        
+        bbox_xmin = 100000
+        bbox_ymin = 100000
+        bbox_xmax = -1
+        bbox_ymax = -1
+
+        for point in bbox_corners:
+            x, y = self.world_to_image(point)
+            bbox_xmin = min(x, bbox_xmin)            
+            bbox_ymin = min(y, bbox_ymin)            
+            bbox_xmax = max(x, bbox_xmax)            
+            bbox_ymax = max(y, bbox_ymax)            
+
+        kitti_stuff = {
+            "dim_x" : (float(max_x-min_x)/(bounds_vis[8]-bounds_vis[7]))*object_dimensions[0]*object_scale[0],
+            "dim_y" : (float(max_y-min_y)/(bounds_vis[10]-bounds_vis[9]))*object_dimensions[1]*object_scale[1],
+            "dim_z" : object_dimensions[2]*object_scale[2],
+            "loc_x" : (max_x+min_x)/2.0,
+            "loc_y" : (max_y+min_y)/2.0,
+            "loc_z" : (max_z+min_z)/2.0,
+            "bbox_xmin" : bbox_xmin,
+            "bbox_ymin" : bbox_ymin,
+            "bbox_xmax" : bbox_xmax,
+            "bbox_ymax" : bbox_ymax,
+        }
+
+        return kitti_stuff
+
+    #TODO: use this function to convert a point [x, y, z] to image coordinates [x', y']
+    def world_to_image(point):
+        pass
+
+    def get_percentages_visible(self, cutting_planes_visible):
         percents_x = []
         percents_y = []
+        percents_z = []
 
         # bounds_vis[0] = side_tracker;
 		
@@ -87,14 +174,19 @@ class GenerateKITTIAnnotations(object):
 		# bounds_vis[2] = maxX[1];
 		# bounds_vis[3] = minY[1];
 		# bounds_vis[4] = maxY[1];
+		# bounds_vis[5] = minZ[1];
+		# bounds_vis[6] = maxZ[1];
 		
-		# bounds_vis[5] = minX[0];
-		# bounds_vis[6] = maxX[0];
-		# bounds_vis[7] = minY[0];
-		# bounds_vis[8] = maxY[0];
+		# bounds_vis[7] = minX[0];
+		# bounds_vis[8] = maxX[0];
+		# bounds_vis[9] = minY[0];
+		# bounds_vis[10] = maxY[0];
+		# bounds_vis[11] = minZ[0];
+		# bounds_vis[12] = maxZ[0];
         # Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
 		
         # do right and left things here
+        planes_viz = 0
         for plane in cutting_planes_visible:
             bounds_vis = cutting_planes_visible[plane]
 
@@ -104,8 +196,9 @@ class GenerateKITTIAnnotations(object):
             else:
                 percents_x.append( (bounds_vis[2] - bounds_vis[1])/(bounds_vis[6] - bounds_vis[5]) )
                 percents_y.append( (bounds_vis[4] - bounds_vis[3])/(bounds_vis[8] - bounds_vis[7]) )
+                planes_viz += 1
 
-        return min(percents_x), min(percents_y)  
+        return min(percents_x), min(percents_y), planes_viz*0.5  
 
     def get_locations(self, obj_loc, obj_rot, cam_loc, cam_rot):
         RT = self.get_3x4_RT(cam_loc, cam_rot)
@@ -167,22 +260,17 @@ class GenerateKITTIAnnotations(object):
 
                     cutting_plane_limits = {}
 
-                    for i in range(18, 18+30, 10):
-                        one_plane = labels[i:i+10]
+                    for i in range(18, 18+3*14, 14):
+                        one_plane = labels[i:i+14]
                         # print(one_plane)
                         #can parse here
                         cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
 
-                    percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
-                    if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
-                        continue
-
-                    if labels[0][0] == 'S':
-                        object_type = "Shelf"
-                        object_dimensions = self.dimensions_map["Shelf"]
-                    else:
-                        object_type = "Box"
-                        object_dimensions = self.dimensions_map[labels[0]]
+                    # percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
+                    # if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
+                    #     continue
+                    
+                   
 
                     shelf_number = int(labels[2].split('_')[-1])
 
@@ -195,6 +283,8 @@ class GenerateKITTIAnnotations(object):
 
                     interShelfDistance = self.dimensions_map["Shelf"][1]
 
+                    unity_proj_mat = labels[-16:]
+                    unity_proj_mat = np.array([unity_proj_mat[0:4], unity_proj_mat[4:8], unity_proj_mat[8:12], unity_proj_mat[12:16]])
 
                     object_location = [float(i) for i in object_location]
                     object_location[1] += object_dimensions[1]/2
@@ -212,14 +302,24 @@ class GenerateKITTIAnnotations(object):
                     object_scale = [float(i) for i in object_scale]
                     camera_location = [float(i) for i in camera_location]
 
+                     if labels[0][0] == 'S':
+                        object_type = "Shelf"
+                        object_dimensions = self.dimensions_map["Shelf"]
+                        kitti_stuff = self.get_bbs(cutting_plane_limits, object_dimensions, object_scale, is_shelf=True)
+                    else:
+                        object_type = "Box"
+                        object_dimensions = self.dimensions_map[labels[0]]
+                        kitti_stuff = self.get_bbs(cutting_plane_limits, object_dimensions, object_scale)
+    
                     # Get the values for KITTI Annotations
                     types = object_type
                     truncated = 0
                     occulded = 0
                     alpha = 0
-                    bbox = [0,0,10,10]
-                    dimensions = object_dimensions
-                    location = objectEgoCentricLocation
+                    # TODO: get bbox, dimensions and location from kitti_stuff
+                    # bbox = [0,0,10,10]
+                    # dimensions = object_dimensions
+                    # location = objectEgoCentricLocation
                     rotation_y = 0
                     to_write = self.build_string(types, truncated, occulded,\
                                              alpha, bbox, dimensions, location,\
