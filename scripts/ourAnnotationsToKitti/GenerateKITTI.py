@@ -120,6 +120,7 @@ class GenerateKITTIAnnotations(object):
         if is_shelf:
             max_y = min_y + 0.5 #TODO: Hardcoded arbitrary value, to account for planar nature of shelf
 
+        # IN THE WORLD FRAME
         bbox_corners = [
             (max_x, max_y, max_z),
             (min_x, max_y, max_z),
@@ -144,13 +145,15 @@ class GenerateKITTIAnnotations(object):
             bbox_xmax = max(x, bbox_xmax)            
             bbox_ymax = max(y, bbox_ymax)            
 
+        threed_bbox_center = [(max_x+min_x)/2.0, (max_y+min_y)/2.0, (max_z+min_z)/2.0]
+        loc_x, loc_y, loc_z = self.world_to_camera(threed_bbox_center)
         kitti_stuff = {
             "dim_x" : (float(max_x-min_x)/(bounds_vis[8]-bounds_vis[7]))*object_dimensions[0]*object_scale[0],
             "dim_y" : (float(max_y-min_y)/(bounds_vis[10]-bounds_vis[9]))*object_dimensions[1]*object_scale[1],
             "dim_z" : object_dimensions[2]*object_scale[2],
-            "loc_x" : (max_x+min_x)/2.0,
-            "loc_y" : (max_y+min_y)/2.0,
-            "loc_z" : (max_z+min_z)/2.0,
+            "loc_x" : loc_x,
+            "loc_y" : loc_y,
+            "loc_z" : loc_z,
             "bbox_xmin" : bbox_xmin,
             "bbox_ymin" : bbox_ymin,
             "bbox_xmax" : bbox_xmax,
@@ -161,6 +164,9 @@ class GenerateKITTIAnnotations(object):
 
     #TODO: use this function to convert a point [x, y, z] to image coordinates [x', y']
     def world_to_image(point):
+        pass
+
+    def world_to_camera(point):
         pass
 
     def get_percentages_visible(self, cutting_planes_visible):
@@ -285,24 +291,26 @@ class GenerateKITTIAnnotations(object):
 
                     unity_proj_mat = labels[-16:]
                     unity_proj_mat = np.array([unity_proj_mat[0:4], unity_proj_mat[4:8], unity_proj_mat[8:12], unity_proj_mat[12:16]])
-
-                    object_location = [float(i) for i in object_location]
-                    object_location[1] += object_dimensions[1]/2
+                    print(unity_proj_mat)
 
                     # print("Object Location : ",object_location)
                     # print("Camera Location : ",camera_location, camera_rotation)
-                    objectEgoCentricLocation = self.get_locations(object_location, object_orientation,
-                                                                        camera_location, camera_rotation)
 
                     # print("objectEgoCentricLocation : ", objectEgoCentricLocation)                                                                    
 
                     objectEgoCentricRotation_y = 0 #np.pi/2-float(object_orientation[2])
 
                     object_dimensions = [float(i) for i in object_dimensions]
+                    object_location = [float(i) for i in object_location]
+                    object_location[1] += object_dimensions[1]/2
+
+                    # objectEgoCentricLocation = self.get_locations(object_location, object_orientation,
+                    #                                                     camera_location, camera_rotation)
+
                     object_scale = [float(i) for i in object_scale]
                     camera_location = [float(i) for i in camera_location]
 
-                     if labels[0][0] == 'S':
+                    if labels[0][0] == 'S':
                         object_type = "Shelf"
                         object_dimensions = self.dimensions_map["Shelf"]
                         kitti_stuff = self.get_bbs(cutting_plane_limits, object_dimensions, object_scale, is_shelf=True)
