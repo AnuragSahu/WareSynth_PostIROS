@@ -25,7 +25,7 @@ class GenerateLayouts(object):
                 elem  = line.split(", ")
         
                 self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
-        self.num_threads = 1
+        self.num_threads = 10
 
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]

@@ -10,7 +10,7 @@ class GenerateEgoCentricFrontLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = False
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
         
