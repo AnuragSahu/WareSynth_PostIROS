@@ -8,11 +8,14 @@ from FileNameManager import filePathManager
 from GenerateEgoCentricTopLayout import generateEgoCentricTopLayout
 from GenerateEgoCentricFrontLayout import generateEgoCentricFrontLayout
 # from GenerateFrontalLayout import generateFrontalLayout
+import threading
 
 class GenerateLayouts(object):
     def __init__(self):
         self.annotations = {}
         self.dimensions_map = {}
+        self.num_threads = 10
+        self.count = 0
         with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
             lines = f.readlines()
             for line in lines:
@@ -132,8 +135,30 @@ class GenerateLayouts(object):
         return locations
 
     def read_annotations(self, annotationsPath, dump_path):
+        files_split = {}
+
+        for i in range(self.num_threads):
+            files_split[i] = []
+
+        c = 0
         for file in glob(join(annotationsPath, '*.txt')):
-            print("For File : ", file)
+            files_split[c%self.num_threads].append(file)
+            c += 1
+
+        threads = []
+
+        for i in range(self.num_threads):
+            t = threading.Thread(target=self.generate_layout_from_file, args=(files_split[i], dump_path))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+    def generate_layout_from_file(self, files, dump_path):
+        for file in files:
+            print("For file no. %d"%(self.count))
+            self.count += 1
             ID = file.split("/")[-1]
             f = open(file, "r")
             annotationLines = f.readlines()
@@ -181,8 +206,8 @@ class GenerateLayouts(object):
                 object_location = [float(i) for i in object_location]
                 object_location[1] += object_dimensions[1]/2
                 
-                print("Object Location : ",object_location)
-                print("Camera Location : ",camera_location)
+                # print("Object Location : ",object_location)
+                # print("Camera Location : ",camera_location)
                 objectEgoCentricLocation = self.get_locations(object_location, object_orientation,
                                                                     camera_location, camera_rotation)
 

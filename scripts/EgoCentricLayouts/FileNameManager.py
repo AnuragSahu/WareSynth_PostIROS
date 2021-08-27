@@ -6,7 +6,7 @@ class FilePathManager(object):
     def __init__(self):
         
         # self.datasetDumpDirectory = "../../unity_retail/"
-        self.datasetDumpDirectory = "/home/anurag/Research/unity_retail/anurag_data/"
+        self.datasetDumpDirectory = "/scratch/data/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0

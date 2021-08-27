@@ -6,8 +6,8 @@ import numpy as np
 import mathutils
 import math
 from FileNameManager import filePathManager
-from GenerateShelfCentricTopLayout import generateShelfCentricTopLayout
-from GenerateShelfCentricFrontLayout import generateShelfCentricFrontLayout
+# from GenerateShelfCentricTopLayout import generateShelfCentricTopLayout
+# from GenerateShelfCentricFrontLayout import generateShelfCentricFrontLayout
 from GenerateFrontalLayout import generateFrontalLayout
 
 from GenerateTopLayout import generateTopLayout
@@ -17,6 +17,7 @@ import threading
 class GenerateLayouts(object):
     def __init__(self):
         self.dimensions_map = {}
+        self.count = 0
         with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
             lines = f.readlines()
             for line in lines:
@@ -24,7 +25,7 @@ class GenerateLayouts(object):
                 elem  = line.split(", ")
         
                 self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
-        self.num_threads = 4
+        self.num_threads = 1
 
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
@@ -92,7 +93,8 @@ class GenerateLayouts(object):
 
     def generate_layout_from_file(self, files, dump_path):
         for file in files:
-            print("For File : ", file)
+            print("For file no. %d"%(self.count))
+            self.count += 1
             ID = file.split("/")[-1]
             f = open(file, "r")
             annotationLines = f.readlines()
@@ -174,7 +176,7 @@ class GenerateLayouts(object):
                 shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
                 if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
-          
+
             generateTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateFrontalLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             
