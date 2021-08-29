@@ -18,7 +18,7 @@ class FilePathManager(object):
         self.kittiVelodynePath = self.datasetDumpDirectory + "KITTI/velodyne/"
         self.anuragAnnotationsPath = self.datasetDumpDirectory
         self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "Annotations/"
-        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "Images/"
+        self.anuragRGBImagesPath = self.anuragAnnotationsPath + "img/"
         self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
         self.BoxProbValuesPath = self.anuragRGBImagesPath 
         self.anuragLayoutspath = None
