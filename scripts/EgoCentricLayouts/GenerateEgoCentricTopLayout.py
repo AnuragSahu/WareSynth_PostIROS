@@ -13,7 +13,7 @@ class GenerateEgoCentricTopLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = False
         self.annotations = {}
     
     def eul2rot(self, theta) :
@@ -331,7 +331,7 @@ class GenerateEgoCentricTopLayout(object):
         return transformed_rect
 
     def write_layouts(self, rack_layouts, box_layouts, ID, dump_path):
-        print(rack_layouts)
+        # print(rack_layouts)
         final_layout_racks = []
         empty_npy = 0
         write_track = 0
