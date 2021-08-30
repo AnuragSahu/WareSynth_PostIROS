@@ -1,3 +1,4 @@
+from numpy.lib.function_base import append
 from FileNameManager import filePathManager
 import Constants
 import cv2
@@ -67,6 +68,7 @@ class GenerateEgoCentricFrontLayout(object):
             int(self.width/self.res))
         )
         layout = Image.fromarray(layout)
+        stacked_list = []
         for annotation in annotations:
             x,y,_ = annotation["object_ego_location"]
             center_x = int((float(x)) / self.res + self.width / (2*self.res))
@@ -76,11 +78,68 @@ class GenerateEgoCentricFrontLayout(object):
             # print("BOX",dimensions[2])
             obj_w = int(float(dimensions[1])/self.res)
             obj_l = int(float(dimensions[0])/self.res)
-            center_y = bottom_y - int(obj_w/2)
-            rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
-            draw = ImageDraw.Draw(layout)
-            draw.polygon([tuple(p) for p in rectangle], fill = 255)
-            layout = layout.convert('L')
+            # print(center_x, center_y, obj_w, obj_l)
+            if (len(stacked_list) == 0):
+                stacked_list.append([[center_x, center_y, obj_l, obj_w]])
+            # print(stacked_list)
+            
+            appended = False
+            for box in stacked_list:
+                cx,cy,ox,oy = box[0]
+                if(center_x < cx + int(ox/2) and center_x > cx - int(ox/2)):
+                    box.append([cx, center_y, obj_l, obj_w])
+                    # print("stacking detected")
+                    appended = True
+                    break
+            if(not appended):
+                stacked_list.append([[center_x, center_y, obj_l, obj_w]])
+            
+        stacked_list[0].pop(0)
+        max = 0
+        for i in range(len(stacked_list)):
+            if(max < len(stacked_list[i])):
+                max = len(stacked_list[i])
+
+        # Get bottom most box
+        for stacked_boxes in stacked_list:
+            maxBox_y = stacked_boxes[0][1]
+            maxBoxIndex = 0
+            for i in range(len(stacked_boxes)):
+                if(maxBox_y < stacked_boxes[i][1]):
+                    maxBox_y = stacked_boxes[i][1]
+                    maxBoxIndex = i
+
+            # Now we know the bottom most box
+            # adjust the y for bottom most box
+            # print(maxBox_y, maxBoxIndex)
+            prev_y = stacked_boxes[maxBoxIndex][1]
+            stacked_boxes[maxBoxIndex][1] = bottom_y - int(stacked_boxes[maxBoxIndex][3]/2)
+            current_y = stacked_boxes[maxBoxIndex][1]
+            change = current_y - prev_y
+            for i in range(len(stacked_boxes)):
+                if(i != maxBoxIndex):
+                    stacked_boxes[i][1] += change
+            # print(stacked_boxes)
+
+        # print("Done ")
+        for stacked_boxes in stacked_list:
+            # x,y,_ = annotation["object_ego_location"]
+            # center_x = int((float(x)) / self.res + self.width / (2*self.res))
+            # center_y = int((-float(y)) / self.res + self.length / (2*self.res))
+            # orient = 0
+            # dimensions = annotation["object_dimensions"]
+            # obj_w = int(float(dimensions[1])/self.res)
+            # obj_l = int(float(dimensions[0])/self.res)
+
+            # -----------------
+            for box in stacked_boxes:
+                center_x, center_y, obj_l, obj_w = box
+            # -----------------
+
+                rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
+                draw = ImageDraw.Draw(layout)
+                draw.polygon([tuple(p) for p in rectangle], fill = 255)
+                layout = layout.convert('L')
         return layout
 
     def get_rect(self, x, y, width, height, theta):
