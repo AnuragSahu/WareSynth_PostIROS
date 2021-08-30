@@ -77,7 +77,7 @@ class GenerateKITTIAnnotations(object):
         ])
         return np.array(RT)
         
-    def get_bbs(self, cutting_planes_visible, object_dimensions, object_scale, projectionMatrix, camera_rotation, camera_location, is_shelf = True):
+    def get_bbs(self, cutting_planes_visible, object_dimensions, object_scale, K, camera_rotation, camera_location, RT, is_shelf = True):
         
         # bounds_vis[0] = side_tracker;
 		
@@ -138,28 +138,29 @@ class GenerateKITTIAnnotations(object):
         bbox_xmax = -1
         bbox_ymax = -1
 
+
         three_d_bbox_center = [(max_x+min_x)/2.0, (max_y+min_y)/2.0, (max_z+min_z)/2.0]
         # print(three_d_bbox_center)
-        print("object location  according to (max_x+min_x)/2 : ", three_d_bbox_center)
-        print("object_dimensions : ", object_dimensions)
-        print("camera_location : ", camera_location)
-        print("camera_rotation : ", camera_rotation)
+        # print("object location  according to (max_x+min_x)/2 : ", three_d_bbox_center)
+        # print("object_dimensions : ", object_dimensions)
+        # print("camera_location : ", camera_location)
+        # print("camera_rotation : ", camera_rotation)
 
         # return
 
-        for point in bbox_corners:
-            x, y = self.world_to_image(point, projectionMatrix, camera_rotation, camera_location)
-            bbox_xmin = min(x, bbox_xmin)            
-            bbox_ymin = min(y, bbox_ymin)            
-            bbox_xmax = max(x, bbox_xmax)            
-            bbox_ymax = max(y, bbox_ymax)            
+        # for point in bbox_corners:
+        #     x, y = self.world_to_image(point, K, RT)
+        #     bbox_xmin = min(x, bbox_xmin)            
+        #     bbox_ymin = min(y, bbox_ymin)            
+        #     bbox_xmax = max(x, bbox_xmax)            
+        #     bbox_ymax = max(y, bbox_ymax)            
 
-        
-        loc_x, loc_y, loc_z = self.world_to_camera_frame(three_d_bbox_center)
+        # self.world_to_image(three_d_bbox_center, K, RT)        
+        loc_x, loc_y, loc_z = self.world_to_camera_frame(three_d_bbox_center, RT)
         kitti_stuff = {
-            "dim_x" : (float(max_x-min_x)/(bounds_vis[8]-bounds_vis[7]))*object_dimensions[0]*object_scale[0],
-            "dim_y" : (float(max_y-min_y)/(bounds_vis[10]-bounds_vis[9]))*object_dimensions[1]*object_scale[1],
-            "dim_z" : object_dimensions[2]*object_scale[2],
+            "dim_x" : (float(max_x-min_x)/(bounds_vis[8]-bounds_vis[7]))*float(object_dimensions[0])*float(object_scale[0]),
+            "dim_y" : (float(max_y-min_y)/(bounds_vis[10]-bounds_vis[9]))*float(object_dimensions[1])*float(object_scale[1]),
+            "dim_z" : float(object_dimensions[2])*float(object_scale[2]),
             "loc_x" : loc_x,
             "loc_y" : loc_y,
             "loc_z" : loc_z,
@@ -172,19 +173,20 @@ class GenerateKITTIAnnotations(object):
         return kitti_stuff
 
     #TODO: use this function to convert a point [x, y, z] to image coordinates [x', y']
-    def world_to_image(self, point, projectionMatrix):
+    def world_to_image(self, point, K, RT):
         point = [float(i) for i in point]
         point.append(1)
+        RT = RT[:-1]
+        projectionMatrix = np.dot(K, RT)
         projectionMatrix = [[float(val) for val in row] for row in projectionMatrix]
+        print("P : ",projectionMatrix)
         res = np.dot(projectionMatrix , point)
         res[0] = res[0]/res[-1]
         res[1] = res[1]/res[-1]
+        print("Object coordinates in Camera Frame", res[0], res[1], "\n\n\n")
         return res[0], res[1]
 
-    def world_to_camera_frame(self, obj_loc, cam_rot, cam_loc):
-        RT = self.get_3x4_RT(cam_loc, cam_rot)
-        extra_vec = np.array([0,0,0,1])
-        RT = np.vstack((RT, extra_vec))
+    def world_to_camera_frame(self, obj_loc, RT):
 
         locations = np.array([
             float(obj_loc[0]),
@@ -310,19 +312,29 @@ class GenerateKITTIAnnotations(object):
                     camera_location = labels[12:15]
                     camera_rotation = labels[15:18]
                     camera_rotation = [float(i)*3.14 for i in camera_rotation]
+                    print(labels[0])
+                    print("Object Location : ", object_location)
 
                     interShelfDistance = self.dimensions_map["Shelf"][1]
 
-                    unity_K_mat = labels[-12:]
+                    unity_K_mat = labels[-9:]
                     unity_K_mat = [unity_K_mat[0:3], unity_K_mat[3:6], unity_K_mat[6:9]]
+                    unity_K_mat = [[float(i) for i in row] for row in unity_K_mat]
+
+                    w_to_c = labels[-25:-9]
+                    # print(w_to_c)
+                    w_to_c = [w_to_c[0:4], w_to_c[4:8], w_to_c[8:12], w_to_c[12:16]]
+                    w_to_c = [[float(i) for i in row] for row in w_to_c]
+                    # print(unity_K_mat)
+                    # print(w_to_c)
 
                     K = unity_K_mat
                     K = [[float(i) for i in j] for j in K]
                     K = np.array(K)
                     RT = self.get_3x4_RT(camera_location, camera_rotation)
                     P = np.dot(K,RT)
-                    print(labels[0])
-                    print("object location  according to go.location.x, go.location.y : ", object_location)
+                    
+                    # print("object location  according to go.location.x, go.location.y : ", object_location)
 
                     # img_x, img_y = self.world_to_image(object_location, P)
                     # print(img_x, img_y)
@@ -340,26 +352,30 @@ class GenerateKITTIAnnotations(object):
 
                     # object_dimensions = [float(i) for i in object_dimensions]
                     # object_location = [float(i) for i in object_location]
-                    # object_location[1] += object_dimensions[1]/2
+                    
 
                     # objectEgoCentricLocation = self.get_locations(object_location, object_orientation,
                     #                                                     camera_location, camera_rotation)
 
                     # object_scale = [float(i) for i in object_scale]
                     # camera_location = [float(i) for i in camera_location]
-
+                    
                     if labels[0][0] == 'S':
                         object_type = "Shelf"
                         object_dimensions = self.dimensions_map["Shelf"]
                         kitti_stuff = self.get_bbs(cutting_plane_limits, object_dimensions, object_scale,
-                                                   unity_K_mat, camera_rotation, camera_location, is_shelf=True)
+                                                   unity_K_mat, camera_rotation, camera_location, w_to_c, is_shelf=True)
                     else:
                         object_type = "Box"
                         object_dimensions = self.dimensions_map[labels[0]]
                         kitti_stuff = self.get_bbs(cutting_plane_limits, object_dimensions, object_scale, 
-                                                    unity_K_mat, camera_rotation, camera_location)
-    
-                    return
+                                                    unity_K_mat, camera_rotation, camera_location, w_to_c)
+                    
+                    object_location = [float(i) for i in object_location]
+                    # object_location[1] += float(object_dimensions[1]/2)
+                    # object_location[0], object_location[1] = object_location[1], object_location[0]
+                    self.world_to_image(object_location, unity_K_mat, w_to_c)
+                    
                     # Get the values for KITTI Annotations
                     types = object_type
                     truncated = 0
@@ -370,12 +386,12 @@ class GenerateKITTIAnnotations(object):
                     # dimensions = object_dimensions
                     # location = objectEgoCentricLocation
                     rotation_y = 0
-                    to_write = self.build_string(types, truncated, occulded,\
-                                             alpha, bbox, dimensions, location,\
-                                             rotation_y)
+                    # to_write = self.build_string(types, truncated, occulded,\
+                    #                          alpha, bbox, dimensions, location,\
+                    #                          rotation_y)
 
-                    # Write the string to_write to file
-                    f.write("%s\n" % to_write) 
+                    # # Write the string to_write to file
+                    # f.write("%s\n" % to_write) 
 
                     # Get the P matrix from annotations
                     P = labels[48 : ]
