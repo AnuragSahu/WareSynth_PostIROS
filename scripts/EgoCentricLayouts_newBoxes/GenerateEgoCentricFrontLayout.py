@@ -93,7 +93,9 @@ class GenerateEgoCentricFrontLayout(object):
                     break
             if(not appended):
                 stacked_list.append([[center_x, center_y, obj_l, obj_w]])
-            
+        if(len(stacked_list) == 0):
+            # No boxes in scene return layout
+            return layout
         stacked_list[0].pop(0)
         max = 0
         for i in range(len(stacked_list)):

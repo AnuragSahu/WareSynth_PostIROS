@@ -5,7 +5,7 @@ import sys
 class FilePathManager(object):
     def __init__(self):
         
-        # self.datasetDumpDirectory = "/home/anurag/Research/unity_to_kitti/data/"
+        # self.datasetDumpDirectory = "/home/anurag/Research/data2_not_working/"
         # self.datasetDumpDirectory = "/home/avinash/Desktop/unity_retail/data/"
         self.datasetDumpDirectory = "/scratch/data/"
         self.sceneCaptureNumber = 0
