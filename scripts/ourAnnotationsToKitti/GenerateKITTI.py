@@ -324,13 +324,13 @@ class GenerateKITTIAnnotations(object):
 
     def convert_to_KITTI(self, annotationsPath, dump_path):
         for file in glob(join(annotationsPath, '*.txt')):
-            ###print("For File : ", file)
+            print("For File : ", file)
 
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
 
-            if ID != 0:
-                continue
+            # if ID != 0:
+            #     continue
             # copy RGB image
             # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
 
