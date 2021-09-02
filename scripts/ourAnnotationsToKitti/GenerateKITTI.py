@@ -20,11 +20,11 @@ class GenerateKITTIAnnotations(object):
                 elem  = line.split(", ")
 
                 self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
-        # ##print(self.dimensions_map)
+        # ####print(self.dimensions_map)
 
     def get_KRT(self, ID):
         P = self.get_P(ID)
-        print("og proj",P)
+        ##print("og proj",P)
     
         KR = P[:, :3]
         negKRinverse = -np.linalg.inv(KR)
@@ -115,19 +115,19 @@ class GenerateKITTIAnnotations(object):
         R_world2bcam = R_world2bcam.T
         
         location = np.array([float(loc[0]), float(loc[1]), float(loc[2])])
-        ###print(loc)
-        ###print(rot)
+        #####print(loc)
+        #####print(rot)
         #rotation = mathutils.Euler((float(rot[0]), float(rot[1]), float(rot[2])))
         #R_world2bcam = rotation.to_matrix().transposed()
         #R_world2bcam = np.array(R_world2bcam)
-        ###print("R World Matrix : ", np.array(R_world2bcam))
+        #####print("R World Matrix : ", np.array(R_world2bcam))
         # Convert camera location to translation vector used in coordinate changes
 
-        ###print(R_world2bcam)
-        ###print(location)
+        #####print(R_world2bcam)
+        #####print(location)
         T_world2bcam = -1*R_world2bcam @ location
 
-        ###print("T_world2bcam : ",T_world2bcam)
+        #####print("T_world2bcam : ",T_world2bcam)
         # Use location from matrix_world to account for constraints:     
         #T_world2bcam = -1*R_world2bcam * location
 
@@ -142,7 +142,7 @@ class GenerateKITTIAnnotations(object):
         return np.array(RT)
         
     def get_bbs(self, cutting_planes_visible, object_location, object_dimensions, object_scale, camera_rotation, camera_location, P, K, RT, is_shelf):
-        # #print("coord", self.world_to_image(object_location, P))
+        # # # #print("coord", self.world_to_image(object_location, P))
         max_x = object_location[0] + object_dimensions[0]*object_scale[0]/2
         min_x = object_location[0] - object_dimensions[0]*object_scale[0]/2
         max_y = object_location[1] + object_dimensions[1]*object_scale[1]
@@ -152,7 +152,18 @@ class GenerateKITTIAnnotations(object):
         
         if is_shelf:
             max_y = min_y + 0.01
-            
+            return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
+        else:
+            return {
+                "max_x": max_x,
+                "min_x": min_x,
+                "max_y": max_y,
+                "min_y": min_y,
+                "max_z": max_z,
+                "min_z": min_z
+            }
+
+    def max_min_to_kitti(self, max_x, max_y, max_z, min_x, min_y, min_z, P):      
         # IN THE WORLD FRAME
         bbox_corners = [
             (max_x, max_y, max_z),
@@ -181,21 +192,9 @@ class GenerateKITTIAnnotations(object):
             bbox_ymin = min(y, bbox_ymin)            
             bbox_xmax = max(x, bbox_xmax)            
             bbox_ymax = max(y, bbox_ymax)            
-
         
-        print()
-        print("proj\n",P)
-        print("krt prod\n", K@RT)
-        print("anurag krt prod\n", K@self.get_3x4_RT(camera_location, camera_rotation))
-        print("our K\n", K)
-        print("our RT\n", RT,"\nAnurag's RT\n", self.get_3x4_RT(camera_location, camera_rotation))
-        # self.world_to_image(three_d_bbox_center, K, RT)        
-        # loc_x, loc_y, loc_z = self.world_to_camera_frame(three_d_bbox_center, self.get_3x4_RT(camera_location, camera_rotation))
-        # loc_x, loc_y, loc_z = self.world_to_camera_frame(three_d_bbox_center, RT)
         loc_x, loc_y, loc_z = three_d_bbox_center
-        #print(object_location)
-        #print(loc_x, loc_y, loc_z)
-        #print("!!!!!!!!!!!!!!!!!!!1")
+        
         kitti_stuff = {
             "dim_height" : float(max_y-min_y),
             "dim_width" : float(max_z-min_z),
@@ -230,7 +229,7 @@ class GenerateKITTIAnnotations(object):
         ])
         
         locations = RT @ locations
-        # ##print(locations)
+        # ####print(locations)
         return locations
 
     def get_percentage_visible(self, cutting_planes_visible):
@@ -238,9 +237,7 @@ class GenerateKITTIAnnotations(object):
         percents_y = []
         percents_z = []
 
-        # bounds_vis[0] = side_tracker;
-		
-		# bounds_vis[1] = minX[1];
+        # bounds_vis[1] = minX[1];
 		# bounds_vis[2] = maxX[1];
 		# bounds_vis[3] = minY[1];
 		# bounds_vis[4] = maxY[1];
@@ -253,19 +250,20 @@ class GenerateKITTIAnnotations(object):
 		# bounds_vis[10] = maxY[0];
 		# bounds_vis[11] = minZ[0];
 		# bounds_vis[12] = maxZ[0];
-        # Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
+		
+		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
 		
         # do right and left things here
         planes_viz = 0
         for plane in cutting_planes_visible:
             bounds_vis = cutting_planes_visible[plane]
-
+            #print(bounds_vis)
             if bounds_vis[0] == 0:
                 percents_x.append(0)
                 percents_y.append(0)
             else:
-                percents_x.append( (bounds_vis[2] - bounds_vis[1])/(bounds_vis[6] - bounds_vis[5]) )
-                percents_y.append( (bounds_vis[4] - bounds_vis[3])/(bounds_vis[8] - bounds_vis[7]) )
+                percents_x.append( (bounds_vis[2] - bounds_vis[1])/(bounds_vis[8] - bounds_vis[7]) )
+                percents_y.append( (bounds_vis[4] - bounds_vis[3])/(bounds_vis[10] - bounds_vis[9]) )
                 planes_viz += 1
 
         return min(percents_x), min(percents_y), planes_viz*0.5  
@@ -282,10 +280,51 @@ class GenerateKITTIAnnotations(object):
         lst = [str(types), str(truncated), str(occulded), str(alpha), bbox_str, dim_str, loca_str, str(rotation_y)]
         return empty_space.join(lst)
 
+    def merge_boxes_and_to_file(self, boxes_kittis, f_label, P):
+        max_x, max_y, max_z = -10000000, -1000000, -10000000
+        min_x, min_y, min_z = 10000000, 1000000, 10000000
+        for box_kitti in boxes_kittis:
+            # print(box_kitti)
+            max_x = max(max_x, box_kitti["max_x"])    
+            max_y = max(max_y, box_kitti["max_y"])    
+            max_z = max(max_z, box_kitti["max_z"])    
+            
+            min_x = min(min_x, box_kitti["min_x"])    
+            min_y = min(min_y, box_kitti["min_y"])    
+            min_z = min(min_z, box_kitti["min_z"])    
+
+        final_kitti = self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
+        self.kitti_obj_to_file(final_kitti, "Box", f_label)
+
+    def kitti_obj_to_file(self, kitti_stuff, object_type, f_label):
+        kitti_stuff["label"] = object_type
+        kitti_stuff["truncated"] = 0
+        kitti_stuff["occulded"] = 0
+        kitti_stuff["alpha"] = 0
+        kitti_stuff["rotation_y"] = 0
+
+        name = object_type
+        name += " " + str(kitti_stuff["truncated"])
+        name += " " + str(kitti_stuff["occulded"])
+        name += " " + str(kitti_stuff["alpha"])
+        name += " " + str(kitti_stuff["bbox_xmin"])
+        name += " " + str(kitti_stuff["bbox_ymin"])
+        name += " " + str(kitti_stuff["bbox_xmax"])
+        name += " " + str(kitti_stuff["bbox_ymax"])
+        name += " " + str(kitti_stuff["dim_height"])
+        name += " " + str(kitti_stuff["dim_width"])
+        name += " " + str(kitti_stuff["dim_length"])
+        name += " " + str(kitti_stuff["loc_x"])
+        name += " " + str(kitti_stuff["loc_y"])
+        name += " " + str(kitti_stuff["loc_z"])
+        name += " " + str(kitti_stuff["rotation_y"])
+
+        f_label.write(name+"\n") 
+
 
     def convert_to_KITTI(self, annotationsPath, dump_path):
         for file in glob(join(annotationsPath, '*.txt')):
-            #print("For File : ", file)
+            ###print("For File : ", file)
 
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
@@ -293,7 +332,7 @@ class GenerateKITTIAnnotations(object):
             if ID != 0:
                 continue
             # copy RGB image
-            shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
+            # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
 
             # copy depth image 
 
@@ -305,7 +344,11 @@ class GenerateKITTIAnnotations(object):
             self.max_shelf_number = 0
             curr_annotations = {}
             P, K, RT = self.get_KRT(ID)
-            # print(K)
+
+            boxes_kittis = {}
+            shelfs_kittis = []
+            shelfs_to_include = []
+
             f_label = open("/home/tanvi/Desktop/Honors/RRC/data/label/" + str(ID).zfill(6) + ".txt",'w')
             for annotationLine in annotationLines:
                 annotationLine = annotationLine.strip('\n')
@@ -313,16 +356,20 @@ class GenerateKITTIAnnotations(object):
                 object_type = labels[0]
 
                 cutting_plane_limits = {}
-
+                # cplns = []    
                 for i in range(18, 18+3*14, 14):
                     one_plane = labels[i:i+14]
-                    # ##print(one_plane)
+                    #print(one_plane)
                     #can parse here
                     cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
 
-                # percent_visible_x, percent_visible_y = self.get_percentage_visible(cutting_plane_limits)
-                # if  percent_visible_x == 0 or percent_visible_y < 0.20: #or whatever threshold
-                #     continue
+                #print("\n", labels[0])
+
+                percent_visible_x, percent_visible_y, _ = self.get_percentage_visible(cutting_plane_limits)
+                #print(percent_visible_x, percent_visible_y)
+                if percent_visible_x == 0 or percent_visible_y < 0.50: #or whatever threshold
+                    continue
+                #print(labels[0], "included")
                     
 
                 shelf_number = int(labels[2].split('_')[-1])
@@ -333,48 +380,33 @@ class GenerateKITTIAnnotations(object):
                 camera_location = list(map(float,labels[12:15]))
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
-                ##print(labels[0])
-                # ##print("Object Location : ", object_location)
-                # #print(RT, self.get_3x4_RT(camera_location, camera_rotation))
-                #print(labels[0])
+
                 if labels[0][0] == 'S':
-                    object_type = "Shelf"
-                    # continue
                     object_dimensions = self.dimensions_map["Shelf"]
                     kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale,
                                                 camera_rotation, camera_location, P, K, RT, is_shelf=True)
+                    shelfs_kittis.append(kitti_stuff)
+                    shelfs_to_include.append(shelf_number)
                 else:
-                    object_type = "Box"
-                    object_dimensions = self.dimensions_map[labels[0]]
+                    box_name, stack_group = labels[0].split(" stack ") 
+                    object_dimensions = self.dimensions_map[box_name]
                     kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale, 
                                                 camera_rotation, camera_location, P, K, RT, is_shelf=False)
-                
-                # object_location = [float(i) for i in object_location]
-                
-                # Get the values for KITTI Annotations
-                kitti_stuff["label"] = object_type
-                kitti_stuff["truncated"] = 0
-                kitti_stuff["occulded"] = 0
-                kitti_stuff["alpha"] = 0
-                kitti_stuff["rotation_y"] = 0
+                    kitti_stuff["shelf_number"] = shelf_number
 
-                name = object_type
-                name += " " + str(kitti_stuff["truncated"])
-                name += " " + str(kitti_stuff["occulded"])
-                name += " " + str(kitti_stuff["alpha"])
-                name += " " + str(kitti_stuff["bbox_xmin"])
-                name += " " + str(kitti_stuff["bbox_ymin"])
-                name += " " + str(kitti_stuff["bbox_xmax"])
-                name += " " + str(kitti_stuff["bbox_ymax"])
-                name += " " + str(kitti_stuff["dim_height"])
-                name += " " + str(kitti_stuff["dim_width"])
-                name += " " + str(kitti_stuff["dim_length"])
-                name += " " + str(kitti_stuff["loc_x"])
-                name += " " + str(kitti_stuff["loc_y"])
-                name += " " + str(kitti_stuff["loc_z"])
-                name += " " + str(kitti_stuff["rotation_y"])
+                    if stack_group not in boxes_kittis:
+                       boxes_kittis[stack_group] = []
+              
+                    boxes_kittis[stack_group].append(kitti_stuff)
+              
+            #LABEL FILE
+            for kitti_stuff in shelfs_kittis:
+                self.kitti_obj_to_file(kitti_stuff, "Shelf", f_label)
 
-                f_label.write(name+"\n")            
+            for key in boxes_kittis.keys():
+                if boxes_kittis[key][0]["shelf_number"] in shelfs_to_include:
+                    self.merge_boxes_and_to_file(boxes_kittis[key], f_label, P)
+                           
             #CALIB FILE 
             str_2 = "P2: "
             # K@self.get_3x4_RT(camera_location,camera_rotation)
@@ -409,11 +441,11 @@ class GenerateKITTIAnnotations(object):
             R_transpose = R.T
             neg_trans = -R_transpose@T
             pos_trans = R@T
-            # print(R_transpose.shape, neg_trans.shape)
+            # ##print(R_transpose.shape, neg_trans.shape)
             # trans_mat = np.hstack((R_transpose, neg_trans))
             trans_mat = np.hstack((R, pos_trans))
             # trans_mat = np.linalg.inv(trans_mat)
-            # print(R, T, trans_mat)
+            # ##print(R, T, trans_mat)
 
             h,w = depth.shape
             cam_points = np.zeros((h * w, 4))
@@ -425,7 +457,7 @@ class GenerateKITTIAnnotations(object):
                 for u in range(w):
 
                     # z = ((depth[v, u] - min_val)/(max_val - min_val))*4.99/2 + 0.01
-                    z = 4.99 * (depth[v, u]/255) + 0.01
+                    z = 19.99 * (depth[v, u]/255) + 0.01
                     x = 1*(u - K[0, 2]) * z / K[0, 0]
                     y = 1*(v - K[1, 2]) * z / K[1, 1]
 
@@ -435,15 +467,15 @@ class GenerateKITTIAnnotations(object):
                     cam_points[i] = tmp 
                     i += 1
 
-                    # print(u,v)
+                    # ##print(u,v)
                     # l = K@np.array([x, y, z])
-                    # print(l[0]/l[2], l[1]/l[2])
-                    # print()
+                    # ##print(l[0]/l[2], l[1]/l[2])
+                    # ##print()
 
 
             # h,w = depth.shape
-            # print(w, K[0, 2], K[0, 0])
-            # print(h, K[1, 2], K[1, 1])
+            # ##print(w, K[0, 2], K[0, 0])
+            # ##print(h, K[1, 2], K[1, 1])
             # cam_points = np.zeros((h * w, 4))
 
             # i = 0
@@ -463,7 +495,7 @@ class GenerateKITTIAnnotations(object):
                     # y = (v - K[1, 2]) * z / K[1, 1]
                     # cam_points[i] =[x,y,z,1]
 
-            #         # print()
+            #         # ##print()
                     # x = (u - K[0, 2]) * depth[v, u] / K[0, 0]
                     # y = (v - K[1, 2]) * depth[v, u] / K[1, 1]
                     # z = depth[v, u]
@@ -475,7 +507,7 @@ class GenerateKITTIAnnotations(object):
             #             y_cnts[k] = 1
 
             #         i += 1
-            # # print(y_cnts)
+            # # ##print(y_cnts)
             cam_points.astype('float32').tofile("/home/tanvi/Desktop/Honors/RRC/data/velodyne/"+str(ID).zfill(6)+".bin")
 
 
@@ -486,4 +518,4 @@ if __name__ == "__main__":
         filePathManager.anuragAnnotationsLabelsPath,
         filePathManager.anuragEgoCentricLayouts
     )
-    ##print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)
+    ####print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)
