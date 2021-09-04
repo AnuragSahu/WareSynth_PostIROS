@@ -11,7 +11,7 @@ class GenerateEgoCentricFrontLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = False
+        self.DEBUG = True
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
         
@@ -78,7 +78,7 @@ class GenerateEgoCentricFrontLayout(object):
             # print("BOX",dimensions[2])
             obj_w = int(float(dimensions[1])/self.res)
             obj_l = int(float(dimensions[0])/self.res)
-            # print(center_x, center_y, obj_w, obj_l)
+            print(annotation["object_name"], center_x, center_y, obj_w, obj_l)
             if (len(stacked_list) == 0):
                 stacked_list.append([[center_x, center_y, obj_l, obj_w]])
             # print(stacked_list)
