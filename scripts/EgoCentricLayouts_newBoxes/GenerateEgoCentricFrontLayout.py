@@ -8,8 +8,8 @@ from PIL import Image, ImageDraw, ImageOps
 
 class GenerateEgoCentricFrontLayout(object):
     def __init__(self):
-        self.length = Constants.LENGTH
-        self.width = Constants.WIDTH
+        self.length = 4 #Constants.LENGTH
+        self.width = 4 #Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size 
         self.DEBUG = True
@@ -200,7 +200,7 @@ class GenerateEgoCentricFrontLayout(object):
                 perm_string = str(aa) + str(bb) + str(cc) + str(dd) + str(ee) + str(ff)
                 perm_string = ""
                 if(self.DEBUG):
-                    cv2.imwrite(filePathManager.getDebugRackLayoutPath("front "+perm_string ,ID, write_track), pixels)
+                    cv2.imwrite(filePathManager.getDebugRackLayoutPath("front"+perm_string ,ID, write_track), pixels)
                     filePathManager.updateDebugImageNumber()
                 final_layout_racks.append(pixels)
                 write_track += 1

@@ -15,6 +15,7 @@ class GenerateEgoCentricTopLayout(object):
         self.res = self.length / self.layout_size
         self.DEBUG = True
         self.annotations = {}
+        self.scale = 2
     
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
@@ -191,8 +192,8 @@ class GenerateEgoCentricTopLayout(object):
             # layout = Image.fromarray(layout)
             # shelf_images_data = layout
 
-            shelf_layouts[shelf_number] = self.getShelfLayout(shelfs)
-            box_layouts[shelf_number] = self.getBoxesLayouts(boxes)
+            shelf_layouts[shelf_number], center_of_shelf = self.getShelfLayout(shelfs)
+            box_layouts[shelf_number] = self.getBoxesLayouts(boxes, center_of_shelf)
             #shelf["object_ego_location"] = self.get_locations(shelf["object_ego_location"])
 
             # print(shelfs)
@@ -283,10 +284,10 @@ class GenerateEgoCentricTopLayout(object):
             int(self.width/self.res))
         )
         layout = Image.fromarray(layout)
-        layout =  self.getOneLayout(shelf,layout, 115)
-        return self.accountCameraRotation(shelf["camera_rotation"], layout)
+        layout, centers =  self.getOneLayout(shelf,layout, 115)
+        return self.accountCameraRotation(shelf["camera_rotation"], layout), centers
 
-    def getBoxesLayouts(self, boxes):
+    def getBoxesLayouts(self, boxes, center_of_shelf):
         layout = np.zeros(
             (int(self.length/self.res), 
             int(self.width/self.res))
@@ -295,7 +296,7 @@ class GenerateEgoCentricTopLayout(object):
         camera_layout = None
         for box in boxes:
             camera_layout = box["camera_rotation"]
-            layout = self.getOneLayout(box, layout, 255)
+            layout = self.getOneBoxLayout(box, layout, 255, center_of_shelf)
         if(camera_layout != None): # rotate only if there is/are some boxes in the shelf
             layout = self.accountCameraRotation(camera_layout, layout)
         return layout
@@ -304,19 +305,38 @@ class GenerateEgoCentricTopLayout(object):
         # layout = layout.rotate(float(camera_rotation[2]) * 180 / np.pi)
         return layout
     
-    def getOneLayout(self,annotation, layout, fill):
+    def getOneBoxLayout(self,annotation, layout, fill, center_of_shelf):
+        print(center_of_shelf)
         x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
         center_x = int(float(x) / self.res + self.width / (2*self.res))
-        center_y = int(float(y) / self.res) # + self.length / (2*self.res))
+        center_y = int(float(y) / self.res - 2.2/self.res)
+        center_x = center_of_shelf[0] - self.scale*(center_of_shelf[0]-center_x)
+        center_y = center_of_shelf[1] - self.scale*(center_of_shelf[1]-center_y)
+
         orient = 0 #float(annotation["ego_rotation_y"])
         dimensions = annotation["object_dimensions"]
-        obj_w = int(float(dimensions[2])/self.res)
-        obj_l = int(float(dimensions[0])/self.res)
+        obj_w = int(float(dimensions[2])/self.res)*self.scale
+        obj_l = int(float(dimensions[0])/self.res)*self.scale
         rectangle = self.get_rect(center_x, int(self.length/self.res) -center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)
         draw.polygon([tuple(p) for p in rectangle], fill=fill)
         layout = layout.convert('L')
         return layout
+
+    def getOneLayout(self,annotation, layout, fill):
+        x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
+        center_x = int(float(x) / self.res + self.width / (2*self.res))
+        center_y = int(float(y) / self.res - 2.2/self.res)
+        
+        orient = 0 #float(annotation["ego_rotation_y"])
+        dimensions = annotation["object_dimensions"]
+        obj_w = int(float(dimensions[2])/self.res)*self.scale
+        obj_l = int(float(dimensions[0])/self.res)*self.scale
+        rectangle = self.get_rect(center_x, int(self.length/self.res) -center_y, obj_l, obj_w, orient)
+        draw = ImageDraw.Draw(layout)
+        draw.polygon([tuple(p) for p in rectangle], fill=fill)
+        layout = layout.convert('L')
+        return layout, (center_x, center_y)
 
     def get_rect(self, x, y, width, height, theta):
         rect = np.array([(-width / 2, -height / 2), (width / 2, -height / 2),
