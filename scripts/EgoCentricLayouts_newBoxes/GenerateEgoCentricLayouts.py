@@ -169,7 +169,7 @@ class GenerateLayouts(object):
         for file in files:
             print("For file no. %d"%(self.count))
             self.count += 1
-            if self.count == 10:
+            if self.count == 3:
                 return
             ID = file.split("/")[-1]
             # if ID == "000000.txt":
@@ -213,7 +213,7 @@ class GenerateLayouts(object):
 
                 if labels[0][0] == 'S':
                     object_type = "Shelf"
-                    object_dimensions = self.dimensions_map["Shelf"]
+                    object_dimensions_old = self.dimensions_map["Shelf"]
                 else:
                     object_type = "Box"
                     # object_dimensions = self.dimensions_map[labels[0].split(" stack ")[0]]
@@ -226,10 +226,11 @@ class GenerateLayouts(object):
                         stack_list[stack_num] = object_scale
                     else:
                         object_scale = stack_list[stack_num]
-
-                    object_dimensions[0] = object_dimensions_old[aa]*object_scale[ff]
-                    object_dimensions[1] = object_dimensions_old[bb]*object_scale[ee]
-                    object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
+                
+                object_dimensions = [100, 100, 100]
+                object_dimensions[0] = object_dimensions_old[aa]*object_scale[ff]
+                object_dimensions[1] = object_dimensions_old[bb]*object_scale[ee]
+                object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
 
                     # print(object_dimensions)
                     
@@ -279,7 +280,7 @@ class GenerateLayouts(object):
                 if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # pprint(shelfs_and_boxes)
-            # generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
+            generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
             aa, bb, cc, dd, ee, ff)
             # return
