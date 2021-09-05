@@ -3,6 +3,7 @@ from FileNameManager import filePathManager
 import Constants
 import cv2
 import numpy as np
+from pprint import pprint
 from PIL import Image, ImageDraw, ImageOps
 
 class GenerateEgoCentricFrontLayout(object):
@@ -13,8 +14,8 @@ class GenerateEgoCentricFrontLayout(object):
         self.res = self.length / self.layout_size
         self.DEBUG = True
 
-    def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number):
-        
+    def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number, aa, bb, cc, dd, ee, ff):
+        # pprint(shelf_and_boxes)
         shelf_layouts = {}
         box_layouts = {}
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
@@ -33,7 +34,7 @@ class GenerateEgoCentricFrontLayout(object):
             layout_box = self.accountCameraRotation(layout_box, camera_rotation_z)
             box_layouts[shelf_number] = layout_box
 
-        self.write_layouts(shelf_layouts, box_layouts, interShelfDistance, ID, dump_path)
+        self.write_layouts(shelf_layouts, box_layouts, interShelfDistance, ID, dump_path, aa, bb, cc, dd, ee, ff)
 
     def generateFrontalLayoutShelf(self, annotation, img_x, img_y, obj_w):
         layout = np.zeros(
@@ -170,7 +171,7 @@ class GenerateEgoCentricFrontLayout(object):
         return shelfHeightDifference
 
 
-    def write_layouts(self, rack_layouts, box_layouts, shelfHeightDifference, ID, dump_path):
+    def write_layouts(self, rack_layouts, box_layouts, shelfHeightDifference, ID, dump_path, aa, bb, cc, dd, ee, ff):
         final_layout_racks = []
         empty_npy = 0
         write_track = 0
@@ -196,9 +197,10 @@ class GenerateEgoCentricFrontLayout(object):
                             pixelsb[i][j] = pixels[i][j]
                 pixels = np.array(pixelsb)    
 
-
+                perm_string = str(aa) + str(bb) + str(cc) + str(dd) + str(ee) + str(ff)
+                perm_string = ""
                 if(self.DEBUG):
-                    cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, write_track), pixels)
+                    cv2.imwrite(filePathManager.getDebugRackLayoutPath("front "+perm_string ,ID, write_track), pixels)
                     filePathManager.updateDebugImageNumber()
                 final_layout_racks.append(pixels)
                 write_track += 1

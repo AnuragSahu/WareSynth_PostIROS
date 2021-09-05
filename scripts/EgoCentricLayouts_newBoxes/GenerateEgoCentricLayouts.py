@@ -1,5 +1,8 @@
+import copy
+from itertools import permutations
 from os.path import join
 from glob import glob
+from pprint import pprint
 import Constants
 import numpy as np
 import mathutils
@@ -141,7 +144,7 @@ class GenerateLayouts(object):
         #locations = [str(i) for i in locations]
         return locations
 
-    def read_annotations(self, annotationsPath, dump_path):
+    def read_annotations(self, annotationsPath, dump_path, aa, bb, cc, dd, ee, ff):
         files_split = {}
 
         for i in range(self.num_threads):
@@ -155,18 +158,22 @@ class GenerateLayouts(object):
         threads = []
 
         for i in range(self.num_threads):
-            t = threading.Thread(target=self.generate_layout_from_file, args=(files_split[i], dump_path))
+            t = threading.Thread(target=self.generate_layout_from_file, args=(files_split[i], dump_path, aa, bb, cc, dd, ee, ff))
             threads.append(t)
             t.start()
 
         for t in threads:
             t.join()
 
-    def generate_layout_from_file(self, files, dump_path):
+    def generate_layout_from_file(self, files, dump_path, aa, bb, cc, dd, ee, ff):
         for file in files:
             print("For file no. %d"%(self.count))
             self.count += 1
+            if self.count == 10:
+                return
             ID = file.split("/")[-1]
+            # if ID == "000000.txt":
+            #     break
             f = open(file, "r")
             annotationLines = f.readlines()
             rack_in_focus = annotationLines[0].strip('\n')
@@ -209,6 +216,7 @@ class GenerateLayouts(object):
                     object_dimensions = self.dimensions_map["Shelf"]
                 else:
                     object_type = "Box"
+                    # object_dimensions = self.dimensions_map[labels[0].split(" stack ")[0]]
                     object_dimensions_old = self.dimensions_map[labels[0].split(" stack ")[0]]
                     print(labels[0])
                     stack_num = labels[0].split(" stack ")[1]
@@ -219,11 +227,11 @@ class GenerateLayouts(object):
                     else:
                         object_scale = stack_list[stack_num]
 
-                    object_dimensions[0] = object_dimensions_old[2]*object_scale[0]
-                    object_dimensions[1] = object_dimensions_old[0]*object_scale[1]
-                    object_dimensions[2] = object_dimensions_old[1]*object_scale[2]
-                    print(object_dimensions)
-                    print()
+                    object_dimensions[0] = object_dimensions_old[aa]*object_scale[ff]
+                    object_dimensions[1] = object_dimensions_old[bb]*object_scale[ee]
+                    object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
+
+                    # print(object_dimensions)
                     
                 shelf_number = int(labels[2].split('_')[-1])
 
@@ -239,11 +247,11 @@ class GenerateLayouts(object):
 
                 objectEgoCentricRotation_y = 0 #np.pi/2-float(object_orientation[2])
 
-                object_dimensions = [float(i) for i in object_dimensions]
                 object_scale = [float(i) for i in object_scale]
                 camera_location = [float(i) for i in camera_location]
                 
-                
+                print(object_dimensions)
+
                 if(rack_in_focus == labels[1] or not Constants.RACK_IN_FOCUS):
                     curr_annotations[annotationID] = {
                         "object_name" : labels[0],
@@ -251,16 +259,15 @@ class GenerateLayouts(object):
                         "shelf_number" : shelf_number,
                         "object_location" : object_location,
                         "object_ego_location" : objectEgoCentricLocation,
-                        # "object_orientation" : object_orientation,
                         "ego_rotation_y" : objectEgoCentricRotation_y,
-                        # "object_scale" : object_scale,
-                        "object_dimensions" : object_dimensions,
+                        "object_dimensions" : copy.deepcopy(object_dimensions),
                         "camera_location" : camera_location,
                         "camera_rotation" : camera_rotation,
                         "center" : [0,0],
                         "interShelfDistance" : interShelfDistance
                     }
-
+                # print(curr_annotations[annotationID])
+                # print()
                 # if(shelf_number > self.max_shelf_number):
                     # self.max_shelf_number = shelf_number
                 annotationID += 1
@@ -271,10 +278,11 @@ class GenerateLayouts(object):
                 shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
                 if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
-
-            generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            return
+            # pprint(shelfs_and_boxes)
+            # generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
+            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
+            aa, bb, cc, dd, ee, ff)
+            # return
 
     def get_shelf_and_boxes(self, shelfNumber, curr_annotations):
         shelf = None
@@ -315,9 +323,16 @@ class GenerateLayouts(object):
 
 if __name__ == "__main__":
     generatelayouts = GenerateLayouts()
+    perm_listl = list(permutations(range(3)))
+    # for aa, bb, cc in perm_listl:
+    #     for dd, ee, ff in perm_listl:
+    #         print(aa, bb, cc, dd, ee, ff)
 
     generatelayouts.read_annotations(
         filePathManager.anuragAnnotationsLabelsPath,
-        filePathManager.anuragEgoCentricLayouts
+        filePathManager.anuragEgoCentricLayouts,
+        0, 1, 2, 1, 2, 0
     )
+        #     break
+        # break
     print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)
