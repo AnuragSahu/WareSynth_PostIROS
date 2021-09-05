@@ -12,10 +12,10 @@ class GenerateEgoCentricFrontLayout(object):
         self.width = 4 #Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size 
-        self.DEBUG = True
+        self.DEBUG = False
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number, aa, bb, cc, dd, ee, ff):
-        # pprint(shelf_and_boxes)
+        # p#print(shelf_and_boxes)
         shelf_layouts = {}
         box_layouts = {}
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
@@ -48,7 +48,7 @@ class GenerateEgoCentricFrontLayout(object):
         # center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
         orient = 0
         dimensions = annotation["object_dimensions"]
-        # print("FREE SPACE : ", obj_w)
+        # #print("FREE SPACE : ", obj_w)
         obj_w = int((float(dimensions[1]))/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
@@ -76,20 +76,20 @@ class GenerateEgoCentricFrontLayout(object):
             center_y = int((-float(y)) / self.res + self.length / (2*self.res))
             orient = 0
             dimensions = annotation["object_dimensions"]
-            # print("BOX",dimensions[2])
+            # #print("BOX",dimensions[2])
             obj_w = int(float(dimensions[1])/self.res)
             obj_l = int(float(dimensions[0])/self.res)
-            print(annotation["object_name"], center_x, center_y, obj_w, obj_l)
+            #print(annotation["object_name"], center_x, center_y, obj_w, obj_l)
             if (len(stacked_list) == 0):
                 stacked_list.append([[center_x, center_y, obj_l, obj_w]])
-            # print(stacked_list)
+            # #print(stacked_list)
             
             appended = False
             for box in stacked_list:
                 cx,cy,ox,oy = box[0]
                 if(center_x < cx + int(ox/2) and center_x > cx - int(ox/2)):
                     box.append([cx, center_y, obj_l, obj_w])
-                    # print("stacking detected")
+                    # #print("stacking detected")
                     appended = True
                     break
             if(not appended):
@@ -114,7 +114,7 @@ class GenerateEgoCentricFrontLayout(object):
 
             # Now we know the bottom most box
             # adjust the y for bottom most box
-            # print(maxBox_y, maxBoxIndex)
+            # #print(maxBox_y, maxBoxIndex)
             prev_y = stacked_boxes[maxBoxIndex][1]
             stacked_boxes[maxBoxIndex][1] = bottom_y - int(stacked_boxes[maxBoxIndex][3]/2)
             current_y = stacked_boxes[maxBoxIndex][1]
@@ -122,9 +122,9 @@ class GenerateEgoCentricFrontLayout(object):
             for i in range(len(stacked_boxes)):
                 if(i != maxBoxIndex):
                     stacked_boxes[i][1] += change
-            # print(stacked_boxes)
+            # #print(stacked_boxes)
 
-        # print("Done ")
+        # #print("Done ")
         for stacked_boxes in stacked_list:
             # x,y,_ = annotation["object_ego_location"]
             # center_x = int((float(x)) / self.res + self.width / (2*self.res))
