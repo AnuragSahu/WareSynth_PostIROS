@@ -4,6 +4,8 @@ GENERATE_KITTI = False
 GENERATE_TOP = True
 GENERATE_FRONT = True
 
+DEBUG = False
+
 # Data splits
 TRAIN_PERCENTAGE = 0.9
 

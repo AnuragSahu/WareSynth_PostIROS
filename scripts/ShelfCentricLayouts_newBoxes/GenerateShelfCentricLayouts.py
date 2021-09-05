@@ -167,7 +167,7 @@ class GenerateLayouts(object):
 
     def generate_layout_from_file(self, files, dump_path, aa, bb, cc, dd, ee, ff):
         for file in files:
-            #print("For file no. %d"%(self.count))
+            print("For file no. %d"%(self.count))
             self.count += 1
             if self.count == 10:
                 return
@@ -234,11 +234,8 @@ class GenerateLayouts(object):
 
 
                 if labels[0] == "Shelf_0":
-                    print(object_dimensions[1])
                     object_dimensions[1] *= (0.9895935 - 0.02)/ (0.9895935 + 0.77)
                     object_dimensions[1] = 1
-                    print(object_dimensions[1])
-                    print()
                 elif labels[0] == "Shelf_2":
                     object_dimensions[1] -= 0.1
 
@@ -347,4 +344,4 @@ if __name__ == "__main__":
     )
         #     break
         # break
-    #print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)
+    print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)

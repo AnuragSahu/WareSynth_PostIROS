@@ -13,7 +13,7 @@ class GenerateShelfCentricFrontLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = Constants.DEBUG
         self.annotations = {}
         self.scale = 1
     
