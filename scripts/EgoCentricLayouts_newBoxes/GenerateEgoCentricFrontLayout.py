@@ -49,7 +49,7 @@ class GenerateEgoCentricFrontLayout(object):
         orient = 0
         dimensions = annotation["object_dimensions"]
         # print("FREE SPACE : ", obj_w)
-        obj_w = int((float(obj_w))/self.res)
+        obj_w = int((float(dimensions[1]))/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)

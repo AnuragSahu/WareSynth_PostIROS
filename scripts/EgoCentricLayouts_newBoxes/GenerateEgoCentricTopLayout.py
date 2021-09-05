@@ -310,7 +310,7 @@ class GenerateEgoCentricTopLayout(object):
         center_y = int(float(y) / self.res) # + self.length / (2*self.res))
         orient = 0 #float(annotation["ego_rotation_y"])
         dimensions = annotation["object_dimensions"]
-        obj_w = int(float(dimensions[1])/self.res)
+        obj_w = int(float(dimensions[2])/self.res)
         obj_l = int(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, int(self.length/self.res) -center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)

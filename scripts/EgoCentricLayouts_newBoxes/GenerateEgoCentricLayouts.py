@@ -169,7 +169,7 @@ class GenerateLayouts(object):
         for file in files:
             print("For file no. %d"%(self.count))
             self.count += 1
-            if self.count == 3:
+            if self.count == 10:
                 return
             ID = file.split("/")[-1]
             # if ID == "000000.txt":
@@ -232,6 +232,9 @@ class GenerateLayouts(object):
                 object_dimensions[1] = object_dimensions_old[bb]*object_scale[ee]
                 object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
 
+                
+                if labels[0] == "Shelf_0":
+                    object_dimensions[1] *= (0.9895935 - 0.02)/ (0.9895935 + 1.35)
                     # print(object_dimensions)
                     
                 shelf_number = int(labels[2].split('_')[-1])
