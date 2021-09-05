@@ -13,7 +13,7 @@ class GenerateEgoCentricTopLayout(object):
         self.width = Constants.WIDTH
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
-        self.DEBUG = True
+        self.DEBUG = False
         self.annotations = {}
         self.scale = 2
     
@@ -47,19 +47,19 @@ class GenerateEgoCentricTopLayout(object):
         R_world2bcam = R_world2bcam.T
         
         location = np.array([float(loc[0]), float(loc[1]), float(loc[2])])
-        #print(loc)
-        #print(rot)
+        ##print(loc)
+        ##print(rot)
         #rotation = mathutils.Euler((float(rot[0]), float(rot[1]), float(rot[2])))
         #R_world2bcam = rotation.to_matrix().transposed()
         #R_world2bcam = np.array(R_world2bcam)
-        #print("R World Matrix : ", np.array(R_world2bcam))
+        ##print("R World Matrix : ", np.array(R_world2bcam))
         # Convert camera location to translation vector used in coordinate changes
 
-        #print(R_world2bcam)
-        #print(location)
+        ##print(R_world2bcam)
+        ##print(location)
         T_world2bcam = -1*R_world2bcam @ location
 
-        #print("T_world2bcam : ",T_world2bcam)
+        ##print("T_world2bcam : ",T_world2bcam)
         # Use location from matrix_world to account for constraints:     
         #T_world2bcam = -1*R_world2bcam * location
 
@@ -85,11 +85,11 @@ class GenerateEgoCentricTopLayout(object):
             1
         ])
 
-        #print("RT : ",RT)
-        #print("loc : ",locations)
+        ##print("RT : ",RT)
+        ##print("loc : ",locations)
         locations = RT @ locations
         locations /= locations[3]
-        #print(obj_loc,cam_loc)
+        ##print(obj_loc,cam_loc)
         locations = locations[:3]
         #locations = [locations[2],locations[1]+float(obj_dim[2])/2,locations[0]]
         #locations = [locations[2],locations[1],locations[0]]
@@ -117,7 +117,7 @@ class GenerateEgoCentricTopLayout(object):
 
     # def generate_layout_rack(self, img_data, label,locations, dimentions, rotation_y, rack_number):
         
-    #     #print(label,locations, dimentions, rotation_y, rack_number)
+    #     ##print(label,locations, dimentions, rotation_y, rack_number)
     #     imgs = img_data
     #     res = self.res
     #     length = self.length
@@ -145,13 +145,13 @@ class GenerateEgoCentricTopLayout(object):
 
     # def generate_layout_Box(self, img_data, label,locations, dimentions, rotation_y, rack_number):
         
-    #     #print(label,locations, dimentions, rotation_y, rack_number)
+    #     ##print(label,locations, dimentions, rotation_y, rack_number)
     #     imgs = img_data
     #     res = self.res
     #     length = self.length
     #     width = self.width
 
-    #     #print(locations)
+    #     ##print(locations)
     #     center_x = int(float(locations[0]) / res + width / (2*res))
     #     # center_x = 256
     #     # center_y = int(float(locations[1]) / res + length / (2*res))
@@ -182,7 +182,7 @@ class GenerateEgoCentricTopLayout(object):
                 continue
             shelfs, boxes = shelf_and_boxes[shelf_number]
             # shelfs, boxes = self.get_shelf_and_boxes(shelf_number)
-            #print(len(shelf))
+            ##print(len(shelf))
             
             # Get the layout of the shelf
             # layout = np.zeros(
@@ -196,7 +196,7 @@ class GenerateEgoCentricTopLayout(object):
             box_layouts[shelf_number] = self.getBoxesLayouts(boxes, center_of_shelf)
             #shelf["object_ego_location"] = self.get_locations(shelf["object_ego_location"])
 
-            # print(shelfs)
+            # #print(shelfs)
             # for shelf in shelfs:
             #     shelf_images_data = self.generate_layout_rack(shelf_images_data, 
             #                                                   shelf["object_type"], 
@@ -206,7 +206,7 @@ class GenerateEgoCentricTopLayout(object):
             #                                                   shelf["ego_rotation_y"],
             #                                                   shelf["shelf_number"])
             # for box in boxes:
-            #     # print(box)
+            #     # #print(box)
             #     shelf_images_data = self.generate_layout_Box(shelf_images_data, 
             #                                               box["object_type"], 
             #                                               self.get_locations(box["object_location"], box["object_orientation"],
@@ -215,8 +215,8 @@ class GenerateEgoCentricTopLayout(object):
             #                                               box["ego_rotation_y"],
             #                                               box["shelf_number"])
 
-            # print(shelfs[0]["object_ego_location"])
-            # print(boxes)  
+            # #print(shelfs[0]["object_ego_location"])
+            # #print(boxes)  
             # if(shelfs[0]["camera_rotation"][2] != 4.71238899230957):
                 # shelf_images_data = shelf_images_data.transpose(Image.FLIP_LEFT_RIGHT)
             
@@ -306,7 +306,7 @@ class GenerateEgoCentricTopLayout(object):
         return layout
     
     def getOneBoxLayout(self,annotation, layout, fill, center_of_shelf):
-        print(center_of_shelf)
+        #print(center_of_shelf)
         x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
         center_x = int(float(x) / self.res + self.width / (2*self.res))
         center_y = int(float(y) / self.res - 2.2/self.res)
@@ -351,12 +351,12 @@ class GenerateEgoCentricTopLayout(object):
         return transformed_rect
 
     def write_layouts(self, rack_layouts, box_layouts, ID, dump_path):
-        # print(rack_layouts)
+        # #print(rack_layouts)
         final_layout_racks = []
         empty_npy = 0
         write_track = 0
         for shelf in range(Constants.MAX_SHELVES):
-            #print(rack_layouts)
+            ##print(rack_layouts)
             if(shelf not in rack_layouts):
                 # pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
                 empty_npy += 1
