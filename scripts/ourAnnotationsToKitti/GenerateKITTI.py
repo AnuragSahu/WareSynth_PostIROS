@@ -57,7 +57,7 @@ class GenerateKITTIAnnotations(object):
         return P, K, RT
 
     def get_P(self, ID, camera_position):
-        file = '/home/tanvi/Desktop/Honors/RRC/data/Correspondences/' + str(ID).zfill(6) + ".txt"
+        file = filePathManager.datasetDumpDirectory+"Correspondences/" + str(ID).zfill(6) + ".txt"
         
         f = open(file, "r")
         line = f.readline().strip("\n")
@@ -342,7 +342,7 @@ class GenerateKITTIAnnotations(object):
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
 
-            if ID != 0:
+            if ID > 200:
                 continue
             # copy RGB image
             # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
@@ -362,7 +362,7 @@ class GenerateKITTIAnnotations(object):
             shelfs_kittis = []
             shelfs_to_include = []
 
-            f_label = open("/home/tanvi/Desktop/Honors/RRC/data/label/" + str(ID).zfill(6) + ".txt",'w')
+            f_label = open(filePathManager.datasetDumpDirectory+"label/" + str(ID).zfill(6) + ".txt",'w')
             for annotationLine in annotationLines:
                 annotationLine = annotationLine.strip('\n')
                 labels = annotationLine.split(", ")
@@ -442,7 +442,7 @@ class GenerateKITTIAnnotations(object):
             str_T = "Tr_velo_to_cam: 1 0 0 0 0 1 0 0 0 0 1 0"
             str_I = "Tr_imu_to_velo: 1 0 0 0 0 1 0 0 0 0 1 0"
 
-            with open("/home/tanvi/Desktop/Honors/RRC/data/calib/" +str(ID).zfill(6)+".txt", 'w') as f:
+            with open(filePathManager.datasetDumpDirectory+"calib/" +str(ID).zfill(6)+".txt", 'w') as f:
                 f.write("%s\n" % str_0)
                 f.write("%s\n" % str_1)
                 f.write("%s\n" % str_2)
@@ -453,7 +453,7 @@ class GenerateKITTIAnnotations(object):
 
 
             #VELODYNE POINTS
-            depth = cv2.imread("/home/tanvi/Desktop/Honors/RRC/data/depth/" +str(ID).zfill(6)+".png", 0)
+            depth = cv2.imread(filePathManager.datasetDumpDirectory+"depth/" +str(ID).zfill(6)+".png", 0)
             depth = np.flipud(depth)
             # depth = np.load("/scratch/warehouse/training_5000/depth/"+str(ID).zfill(6)+".npy")
             
@@ -546,7 +546,7 @@ class GenerateKITTIAnnotations(object):
 
             #         i += 1
             # # ##print(y_cnts)
-            cam_points.astype('float32').tofile("/home/tanvi/Desktop/Honors/RRC/data/velodyne/"+str(ID).zfill(6)+".bin")
+            cam_points.astype('float32').tofile(filePathManager.datasetDumpDirectory+"velodyne/"+str(ID).zfill(6)+".bin")
 
 
 if __name__ == "__main__":
