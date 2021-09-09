@@ -13,17 +13,29 @@ class GenerateKITTIAnnotations(object):
     def __init__(self):
         self.annotations = {}
         self.dimensions_map = {}
+        self.transform_mat = np.array([[0, 0, 1],[1, 0, 0], [0, 1, 0]])
+        
         with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip('\n')
                 elem  = line.split(", ")
 
-                self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
+                self.dimensions_map[elem[0]] =  self.transform_point(list(map(float, elem[1:])), [0, 0, 0])
         # ####print(self.dimensions_map)
 
-    def get_KRT(self, ID):
-        P = self.get_P(ID)
+    def transform_point(self, point, camera_position):
+        point[0] -= camera_position[0]
+        point[1] -= camera_position[1]
+        point[2] -= camera_position[2]
+        # print("Input:", point)
+        point = np.array(point).reshape((3,1))
+        a = (self.transform_mat@point).T.tolist()[0]
+        # print("Output:", a)
+        return a
+
+    def get_KRT(self, ID, camera_location):
+        P = self.get_P(ID, camera_location)
         ##print("og proj",P)
     
         KR = P[:, :3]
@@ -44,7 +56,7 @@ class GenerateKITTIAnnotations(object):
                 
         return P, K, RT
 
-    def get_P(self, ID):
+    def get_P(self, ID, camera_position):
         file = '/home/tanvi/Desktop/Honors/RRC/data/Correspondences/' + str(ID).zfill(6) + ".txt"
         
         f = open(file, "r")
@@ -56,7 +68,8 @@ class GenerateKITTIAnnotations(object):
             pts = [float(a) for a in line.split(", ")]
             line = f.readline().strip("\n")
             
-            worldCoords.append(pts[0:3])
+            worldCoords.append(self.transform_point(pts[0:3], camera_position))
+            # worldCoords.append(pts[0:3])
             imageCoords.append(pts[-2:])
         
         worldCoords = np.array(worldCoords)
@@ -98,7 +111,7 @@ class GenerateKITTIAnnotations(object):
 
         return R
 
-    def get_3x4_RT(self, loc, rot):
+    # def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
         R_bcam2cv = mathutils.Matrix(
             ((1, 0,  0),
@@ -141,17 +154,17 @@ class GenerateKITTIAnnotations(object):
         ])
         return np.array(RT)
         
-    def get_bbs(self, cutting_planes_visible, object_location, object_dimensions, object_scale, camera_rotation, camera_location, P, K, RT, is_shelf):
+    def get_bbs(self, object_location, object_dimensions, object_scale, P, K, RT, is_shelf):
         # # # #print("coord", self.world_to_image(object_location, P))
         max_x = object_location[0] + object_dimensions[0]*object_scale[0]/2
         min_x = object_location[0] - object_dimensions[0]*object_scale[0]/2
-        max_y = object_location[1] + object_dimensions[1]*object_scale[1]
-        min_y = object_location[1] 
-        max_z = object_location[2] + object_dimensions[2]*object_scale[2]/2
-        min_z = object_location[2] - object_dimensions[2]*object_scale[2]/2
+        max_z = object_location[2] + object_dimensions[2]*object_scale[2]
+        min_z = object_location[2] 
+        max_y = object_location[1] + object_dimensions[1]*object_scale[1]/2
+        min_y = object_location[1] - object_dimensions[1]*object_scale[1]/2
         
         if is_shelf:
-            max_y = min_y + 0.01
+            max_z = min_z + 0.01
             return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
         else:
             return {
@@ -329,8 +342,8 @@ class GenerateKITTIAnnotations(object):
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
 
-            # if ID != 0:
-            #     continue
+            if ID != 0:
+                continue
             # copy RGB image
             # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
 
@@ -343,7 +356,7 @@ class GenerateKITTIAnnotations(object):
             annotationID = 0
             self.max_shelf_number = 0
             curr_annotations = {}
-            P, K, RT = self.get_KRT(ID)
+            P, K, RT = None, None, None
 
             boxes_kittis = {}
             shelfs_kittis = []
@@ -373,25 +386,32 @@ class GenerateKITTIAnnotations(object):
                     
 
                 shelf_number = int(labels[2].split('_')[-1])
-
-                object_location = list(map(float,labels[3:6]))
-                # object_orientation = labels[6:9]
-                object_scale = list(map(float,labels[9:12]))
                 camera_location = list(map(float,labels[12:15]))
+
+                try:
+                    if P == None:
+                        P, K, RT = self.get_KRT(ID, camera_location)
+                except:
+                    pass
+
+                object_location = self.transform_point(list(map(float,labels[3:6])), camera_location)
+                # object_orientation = labels[6:9]
+                object_scale = self.transform_point(list(map(float,labels[9:12])), [0, 0, 0])
+                # camera_location = self.transform_point(list(map(float,labels[12:15])))
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
 
                 if labels[0][0] == 'S':
                     object_dimensions = self.dimensions_map["Shelf"]
-                    kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale,
-                                                camera_rotation, camera_location, P, K, RT, is_shelf=True)
+                    kitti_stuff = self.get_bbs( object_location, object_dimensions, object_scale,
+                                                 P, K, RT, is_shelf=True)
                     shelfs_kittis.append(kitti_stuff)
                     shelfs_to_include.append(shelf_number)
                 else:
                     box_name, stack_group = labels[0].split(" stack ") 
                     object_dimensions = self.dimensions_map[box_name]
-                    kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale, 
-                                                camera_rotation, camera_location, P, K, RT, is_shelf=False)
+                    kitti_stuff = self.get_bbs( object_location, object_dimensions, object_scale, 
+                                                 P, K, RT, is_shelf=False)
                     kitti_stuff["shelf_number"] = shelf_number
 
                     if stack_group not in boxes_kittis:
@@ -434,8 +454,14 @@ class GenerateKITTIAnnotations(object):
 
             #VELODYNE POINTS
             depth = cv2.imread("/home/tanvi/Desktop/Honors/RRC/data/depth/" +str(ID).zfill(6)+".png", 0)
+            depth = np.flipud(depth)
             # depth = np.load("/scratch/warehouse/training_5000/depth/"+str(ID).zfill(6)+".npy")
             
+            av_lis = [90, 0, 270]
+            av_lis = [float(i)*np.pi for i in av_lis]
+            R_av = self.eul2rot(av_lis)
+            print(R_av)
+
             R = self.eul2rot(camera_rotation)
             T = np.array(camera_location).reshape((3,1))
             R_transpose = R.T
@@ -461,11 +487,23 @@ class GenerateKITTIAnnotations(object):
                     x = 1*(u - K[0, 2]) * z / K[0, 0]
                     y = 1*(v - K[1, 2]) * z / K[1, 1]
 
+                    # x = 19.99 * (depth[v, u]/255) + 0.01
+                    # y = (u - K[0, 2]) * x / K[0, 0]
+                    # z = (v - K[1, 2]) * x / K[1, 1]
+
                     tmp = list(trans_mat@np.array([x, y, z, 1]))
+                    # tmp[1] = -1*tmp[1]
+                    # tmp[2] = -1*tmp[2]
                     # tmp = [x, y, z]
+                    # print(tmp)
+                    tmp = self.transform_point(tmp, camera_location)
+                    # print(tmp)
+                    # break
+                    # tmp[2] *= -1
                     tmp.append(1)
                     cam_points[i] = tmp 
                     i += 1
+                # break
 
                     # ##print(u,v)
                     # l = K@np.array([x, y, z])
