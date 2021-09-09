@@ -17,7 +17,7 @@ class GenerateLayouts(object):
     def __init__(self):
         self.annotations = {}
         self.dimensions_map = {}
-        self.num_threads = 10
+        self.num_threads = 1
         self.count = 0
         with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
             lines = f.readlines()
