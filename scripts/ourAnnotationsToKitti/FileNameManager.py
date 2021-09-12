@@ -7,8 +7,9 @@ class FilePathManager(object):
         
         # self.datasetDumpDirectory = "../../unity_retail/"
         # self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
-        self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_subset_200/"
+        # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_subset_200/"
         # self.datasetDumpDirectory = "/home/anurag/Research/data/"
+        self.datasetDumpDirectory = "/home/avinash123/data_subset_200/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0

@@ -160,33 +160,37 @@ class GenerateKITTIAnnotations(object):
         min_x = object_location[0] - object_dimensions[0]*object_scale[0]/2
         max_z = object_location[2] + object_dimensions[2]*object_scale[2]
         min_z = object_location[2] 
-        max_y = object_location[1] + object_dimensions[1]*object_scale[1]/2
-        min_y = object_location[1] - object_dimensions[1]*object_scale[1]/2
+        max_y_box = object_location[1] + object_dimensions[1]*object_scale[1]/2
+        min_y_box = object_location[1] - object_dimensions[1]*object_scale[1]/2
+        max_y = object_location[1] + object_dimensions[1]*object_scale[1]
+        min_y = object_location[1] 
         
         if is_shelf:
             max_z = min_z + 0.01
-            return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
+            return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box)
         else:
             return {
                 "max_x": max_x,
                 "min_x": min_x,
+                "max_y_box": max_y_box,
                 "max_y": max_y,
+                "min_y_box": min_y_box,
                 "min_y": min_y,
                 "max_z": max_z,
                 "min_z": min_z
             }
 
-    def max_min_to_kitti(self, max_x, max_y, max_z, min_x, min_y, min_z, P):      
+    def max_min_to_kitti(self, max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box):      
         # IN THE WORLD FRAME
         bbox_corners = [
-            (max_x, max_y, max_z),
-            (min_x, max_y, max_z),
-            (max_x, min_y, max_z),
-            (min_x, min_y, max_z),
-            (max_x, max_y, min_z),
-            (min_x, max_y, min_z),
-            (max_x, min_y, min_z),
-            (min_x, min_y, min_z),
+            (max_x, max_y_box, max_z),
+            (min_x, max_y_box, max_z),
+            (max_x, min_y_box, max_z),
+            (min_x, min_y_box, max_z),
+            (max_x, max_y_box, min_z),
+            (min_x, max_y_box, min_z),
+            (max_x, min_y_box, min_z),
+            (min_x, min_y_box, min_z),
         ]
 
         # #print(bbox_corners)
@@ -294,8 +298,8 @@ class GenerateKITTIAnnotations(object):
         return empty_space.join(lst)
 
     def merge_boxes_and_to_file(self, boxes_kittis, f_label, P):
-        max_x, max_y, max_z = -10000000, -1000000, -10000000
-        min_x, min_y, min_z = 10000000, 1000000, 10000000
+        max_x, max_y, max_z, max_y_box = -10000000, -1000000, -10000000, -10000000
+        min_x, min_y, min_z, min_y_box = 10000000, 1000000, 10000000, 10000000
         for box_kitti in boxes_kittis:
             # print(box_kitti)
             max_x = max(max_x, box_kitti["max_x"])    
@@ -306,7 +310,11 @@ class GenerateKITTIAnnotations(object):
             min_y = min(min_y, box_kitti["min_y"])    
             min_z = min(min_z, box_kitti["min_z"])    
 
-        final_kitti = self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
+            min_y_box = min(min_y_box, box_kitti["min_y_box"])    
+            max_y_box = max(max_y_box, box_kitti["max_y_box"])    
+
+
+        final_kitti = self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box)
         self.kitti_obj_to_file(final_kitti, "Box", f_label)
 
     def kitti_obj_to_file(self, kitti_stuff, object_type, f_label):
@@ -342,7 +350,7 @@ class GenerateKITTIAnnotations(object):
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
 
-            if ID > 200:
+            if ID != 0:
                 continue
             # copy RGB image
             # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
