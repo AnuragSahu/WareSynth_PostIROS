@@ -13,29 +13,17 @@ class GenerateKITTIAnnotations(object):
     def __init__(self):
         self.annotations = {}
         self.dimensions_map = {}
-        self.transform_mat = np.array([[0, 0, 1],[1, 0, 0], [0, 1, 0]])
-        
         with open(filePathManager.datasetDumpDirectory+"dimensions.txt") as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip('\n')
                 elem  = line.split(", ")
 
-                self.dimensions_map[elem[0]] =  self.transform_point(list(map(float, elem[1:])), [0, 0, 0])
+                self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
         # ####print(self.dimensions_map)
 
-    def transform_point(self, point, camera_position):
-        point[0] -= camera_position[0]
-        point[1] -= camera_position[1]
-        point[2] -= camera_position[2]
-        # print("Input:", point)
-        point = np.array(point).reshape((3,1))
-        a = (self.transform_mat@point).T.tolist()[0]
-        # print("Output:", a)
-        return a
-
-    def get_KRT(self, ID, camera_location):
-        P = self.get_P(ID, camera_location)
+    def get_KRT(self, ID):
+        P = self.get_P(ID)
         ##print("og proj",P)
     
         KR = P[:, :3]
@@ -56,8 +44,8 @@ class GenerateKITTIAnnotations(object):
                 
         return P, K, RT
 
-    def get_P(self, ID, camera_position):
-        file = filePathManager.datasetDumpDirectory+"Correspondences/" + str(ID).zfill(6) + ".txt"
+    def get_P(self, ID):
+        file = '/home/tanvi/Desktop/Honors/RRC/data/Correspondences/' + str(ID).zfill(6) + ".txt"
         
         f = open(file, "r")
         line = f.readline().strip("\n")
@@ -68,8 +56,7 @@ class GenerateKITTIAnnotations(object):
             pts = [float(a) for a in line.split(", ")]
             line = f.readline().strip("\n")
             
-            worldCoords.append(self.transform_point(pts[0:3], camera_position))
-            # worldCoords.append(pts[0:3])
+            worldCoords.append(pts[0:3])
             imageCoords.append(pts[-2:])
         
         worldCoords = np.array(worldCoords)
@@ -111,7 +98,7 @@ class GenerateKITTIAnnotations(object):
 
         return R
 
-    # def get_3x4_RT(self, loc, rot):
+    def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
         R_bcam2cv = mathutils.Matrix(
             ((1, 0,  0),
@@ -154,43 +141,43 @@ class GenerateKITTIAnnotations(object):
         ])
         return np.array(RT)
         
-    def get_bbs(self, object_location, object_dimensions, object_scale, P, K, RT, is_shelf):
+    def get_bbs(self, cutting_planes_visible, object_location, object_dimensions, object_scale, camera_rotation, camera_location, P, K, RT, is_shelf):
         # # # #print("coord", self.world_to_image(object_location, P))
         max_x = object_location[0] + object_dimensions[0]*object_scale[0]/2
         min_x = object_location[0] - object_dimensions[0]*object_scale[0]/2
-        max_z = object_location[2] + object_dimensions[2]*object_scale[2]
-        min_z = object_location[2] 
-        max_y_box = object_location[1] + object_dimensions[1]*object_scale[1]/2
-        min_y_box = object_location[1] - object_dimensions[1]*object_scale[1]/2
+
+
         max_y = object_location[1] + object_dimensions[1]*object_scale[1]
         min_y = object_location[1] 
         
+        
+        max_z = object_location[2] + object_dimensions[2]*object_scale[2]/2
+        min_z = object_location[2] - object_dimensions[2]*object_scale[2]/2
+        
         if is_shelf:
-            max_z = min_z + 0.01
-            return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box)
+            max_y = min_y + 0.01
+            return self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P)
         else:
             return {
                 "max_x": max_x,
                 "min_x": min_x,
-                "max_y_box": max_y_box,
                 "max_y": max_y,
-                "min_y_box": min_y_box,
                 "min_y": min_y,
                 "max_z": max_z,
                 "min_z": min_z
             }
 
-    def max_min_to_kitti(self, max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box):      
+    def max_min_to_kitti(self, max_x, max_y, max_z, min_x, min_y, min_z, P):      
         # IN THE WORLD FRAME
         bbox_corners = [
-            (max_x, max_y_box, max_z),
-            (min_x, max_y_box, max_z),
-            (max_x, min_y_box, max_z),
-            (min_x, min_y_box, max_z),
-            (max_x, max_y_box, min_z),
-            (min_x, max_y_box, min_z),
-            (max_x, min_y_box, min_z),
-            (min_x, min_y_box, min_z),
+            (max_x, max_y, max_z),
+            (min_x, max_y, max_z),
+            (max_x, min_y, max_z),
+            (min_x, min_y, max_z),
+            (max_x, max_y, min_z),
+            (min_x, max_y, min_z),
+            (max_x, min_y, min_z),
+            (min_x, min_y, min_z),
         ]
 
         # #print(bbox_corners)
@@ -226,6 +213,54 @@ class GenerateKITTIAnnotations(object):
         }
 
         return kitti_stuff
+
+    def max_min_to_kitti_box(self, max_x, max_y, max_z, min_x, min_y, min_z, P):      
+        # IN THE WORLD FRAME
+        bbox_corners = [
+            (max_x, max_y, max_z),
+            (min_x, max_y, max_z),
+            (max_x, min_y, max_z),
+            (min_x, min_y, max_z),
+            (max_x, max_y, min_z),
+            (min_x, max_y, min_z),
+            (max_x, min_y, min_z),
+            (min_x, min_y, min_z),
+        ]
+
+        # #print(bbox_corners)
+
+        bbox_xmin = 100000
+        bbox_ymin = 100000
+        bbox_xmax = -1
+        bbox_ymax = -1
+
+
+        three_d_bbox_center = [float(max_x+min_x)/2, float(max_y+min_y)/2, float(max_z+min_z)/2]
+
+        for point in bbox_corners:
+            x, y = self.world_to_image(point, P)
+            bbox_xmin = min(x, bbox_xmin)            
+            bbox_ymin = min(y, bbox_ymin)            
+            bbox_xmax = max(x, bbox_xmax)            
+            bbox_ymax = max(y, bbox_ymax)            
+        
+        loc_x, loc_y, loc_z = three_d_bbox_center
+        
+        kitti_stuff = {
+            "dim_height" : float(max_y-min_y),
+            "dim_width" : float(max_z-min_z),
+            "dim_length" : float(max_x - min_x),
+            "loc_x" : loc_x,
+            "loc_y" : loc_y + float(max_y-min_y)/2,
+            "loc_z" : loc_z,
+            "bbox_xmin" : bbox_xmin,
+            "bbox_ymin" : bbox_ymin,
+            "bbox_xmax" : bbox_xmax,
+            "bbox_ymax" : bbox_ymax,
+        }
+
+        return kitti_stuff
+
 
     #TODO: use this function to convert a point [x, y, z] to image coordinates [x', y']
     def world_to_image(self, point, P):
@@ -298,8 +333,8 @@ class GenerateKITTIAnnotations(object):
         return empty_space.join(lst)
 
     def merge_boxes_and_to_file(self, boxes_kittis, f_label, P):
-        max_x, max_y, max_z, max_y_box = -10000000, -1000000, -10000000, -10000000
-        min_x, min_y, min_z, min_y_box = 10000000, 1000000, 10000000, 10000000
+        max_x, max_y, max_z = -10000000, -1000000, -10000000
+        min_x, min_y, min_z = 10000000, 1000000, 10000000
         for box_kitti in boxes_kittis:
             # print(box_kitti)
             max_x = max(max_x, box_kitti["max_x"])    
@@ -310,11 +345,7 @@ class GenerateKITTIAnnotations(object):
             min_y = min(min_y, box_kitti["min_y"])    
             min_z = min(min_z, box_kitti["min_z"])    
 
-            min_y_box = min(min_y_box, box_kitti["min_y_box"])    
-            max_y_box = max(max_y_box, box_kitti["max_y_box"])    
-
-
-        final_kitti = self.max_min_to_kitti(max_x, max_y, max_z, min_x, min_y, min_z, P, max_y_box, min_y_box)
+        final_kitti = self.max_min_to_kitti_box(max_x, max_y, max_z, min_x, min_y, min_z, P)
         self.kitti_obj_to_file(final_kitti, "Box", f_label)
 
     def kitti_obj_to_file(self, kitti_stuff, object_type, f_label):
@@ -364,13 +395,13 @@ class GenerateKITTIAnnotations(object):
             annotationID = 0
             self.max_shelf_number = 0
             curr_annotations = {}
-            P, K, RT = None, None, None
+            P, K, RT = self.get_KRT(ID)
 
             boxes_kittis = {}
             shelfs_kittis = []
             shelfs_to_include = []
 
-            f_label = open(filePathManager.datasetDumpDirectory+"label/" + str(ID).zfill(6) + ".txt",'w')
+            f_label = open("/home/tanvi/Desktop/Honors/RRC/data/label/" + str(ID).zfill(6) + ".txt",'w')
             for annotationLine in annotationLines:
                 annotationLine = annotationLine.strip('\n')
                 labels = annotationLine.split(", ")
@@ -394,32 +425,25 @@ class GenerateKITTIAnnotations(object):
                     
 
                 shelf_number = int(labels[2].split('_')[-1])
-                camera_location = list(map(float,labels[12:15]))
 
-                try:
-                    if P == None:
-                        P, K, RT = self.get_KRT(ID, camera_location)
-                except:
-                    pass
-
-                object_location = self.transform_point(list(map(float,labels[3:6])), camera_location)
+                object_location = list(map(float,labels[3:6]))
                 # object_orientation = labels[6:9]
-                object_scale = self.transform_point(list(map(float,labels[9:12])), [0, 0, 0])
-                # camera_location = self.transform_point(list(map(float,labels[12:15])))
+                object_scale = list(map(float,labels[9:12]))
+                camera_location = list(map(float,labels[12:15]))
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
 
                 if labels[0][0] == 'S':
                     object_dimensions = self.dimensions_map["Shelf"]
-                    kitti_stuff = self.get_bbs( object_location, object_dimensions, object_scale,
-                                                 P, K, RT, is_shelf=True)
+                    kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale,
+                                                camera_rotation, camera_location, P, K, RT, is_shelf=True)
                     shelfs_kittis.append(kitti_stuff)
                     shelfs_to_include.append(shelf_number)
                 else:
                     box_name, stack_group = labels[0].split(" stack ") 
                     object_dimensions = self.dimensions_map[box_name]
-                    kitti_stuff = self.get_bbs( object_location, object_dimensions, object_scale, 
-                                                 P, K, RT, is_shelf=False)
+                    kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale, 
+                                                camera_rotation, camera_location, P, K, RT, is_shelf=False)
                     kitti_stuff["shelf_number"] = shelf_number
 
                     if stack_group not in boxes_kittis:
@@ -450,7 +474,7 @@ class GenerateKITTIAnnotations(object):
             str_T = "Tr_velo_to_cam: 1 0 0 0 0 1 0 0 0 0 1 0"
             str_I = "Tr_imu_to_velo: 1 0 0 0 0 1 0 0 0 0 1 0"
 
-            with open(filePathManager.datasetDumpDirectory+"calib/" +str(ID).zfill(6)+".txt", 'w') as f:
+            with open("/home/tanvi/Desktop/Honors/RRC/data/calib/" +str(ID).zfill(6)+".txt", 'w') as f:
                 f.write("%s\n" % str_0)
                 f.write("%s\n" % str_1)
                 f.write("%s\n" % str_2)
@@ -461,15 +485,9 @@ class GenerateKITTIAnnotations(object):
 
 
             #VELODYNE POINTS
-            depth = cv2.imread(filePathManager.datasetDumpDirectory+"depth/" +str(ID).zfill(6)+".png", 0)
-            depth = np.flipud(depth)
+            depth = cv2.imread("/home/tanvi/Desktop/Honors/RRC/data/depth/" +str(ID).zfill(6)+".png", 0)
             # depth = np.load("/scratch/warehouse/training_5000/depth/"+str(ID).zfill(6)+".npy")
             
-            av_lis = [90, 0, 270]
-            av_lis = [float(i)*np.pi for i in av_lis]
-            R_av = self.eul2rot(av_lis)
-            print(R_av)
-
             R = self.eul2rot(camera_rotation)
             T = np.array(camera_location).reshape((3,1))
             R_transpose = R.T
@@ -495,23 +513,11 @@ class GenerateKITTIAnnotations(object):
                     x = 1*(u - K[0, 2]) * z / K[0, 0]
                     y = 1*(v - K[1, 2]) * z / K[1, 1]
 
-                    # x = 19.99 * (depth[v, u]/255) + 0.01
-                    # y = (u - K[0, 2]) * x / K[0, 0]
-                    # z = (v - K[1, 2]) * x / K[1, 1]
-
                     tmp = list(trans_mat@np.array([x, y, z, 1]))
-                    # tmp[1] = -1*tmp[1]
-                    # tmp[2] = -1*tmp[2]
                     # tmp = [x, y, z]
-                    # print(tmp)
-                    tmp = self.transform_point(tmp, camera_location)
-                    # print(tmp)
-                    # break
-                    # tmp[2] *= -1
                     tmp.append(1)
                     cam_points[i] = tmp 
                     i += 1
-                # break
 
                     # ##print(u,v)
                     # l = K@np.array([x, y, z])
@@ -554,7 +560,7 @@ class GenerateKITTIAnnotations(object):
 
             #         i += 1
             # # ##print(y_cnts)
-            cam_points.astype('float32').tofile(filePathManager.datasetDumpDirectory+"velodyne/"+str(ID).zfill(6)+".bin")
+            cam_points.astype('float32').tofile("/home/tanvi/Desktop/Honors/RRC/data/velodyne/"+str(ID).zfill(6)+".bin")
 
 
 if __name__ == "__main__":
