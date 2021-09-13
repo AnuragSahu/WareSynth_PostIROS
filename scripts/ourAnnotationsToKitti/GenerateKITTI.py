@@ -395,8 +395,8 @@ class GenerateKITTIAnnotations(object):
             ID = file.split("/")[-1]
             ID = int(ID.split(".")[0])
 
-            if ID != 0:
-                continue
+            # if ID != 0:
+            #     continue
             # copy RGB image
             # shutil.copyfile(filePathManager.anuragRGBImagesPath+str(ID).zfill(6)+".png", filePathManager.kittiImagePath+str(ID).zfill(6)+".png")
 
