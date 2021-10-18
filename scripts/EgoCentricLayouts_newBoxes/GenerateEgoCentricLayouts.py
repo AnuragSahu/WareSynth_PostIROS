@@ -102,31 +102,33 @@ class GenerateLayouts(object):
 		
 		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
         # do right and left things here
+
+        for plane in cutting_planes_visible:
            
-        bounds_vis = cutting_planes_visible[0] # front plane
+            bounds_vis = cutting_planes_visible[plane]
 
-        isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
+            isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
 
-        lims = [
-            [minX, maxX, MINx, MAXx],
-            [minY, maxY, MINy, MAXy],
-            [minZ, maxZ, MINz, MAXz]
-        ]
+            lims = [
+                [minX, maxX, MINx, MAXx],
+                [minY, maxY, MINy, MAXy],
+                [minZ, maxZ, MINz, MAXz]
+            ]
 
-        for i in range(2): #, <- we don't adjust z, cut x and y only
-            limits = lims[i]
-            if isVis == 0:
-                object_dimensions[i] = 0
-            elif limits[1] == limits[3] and limits[0] == limits[2]:
-                pass 
-            else:
-                print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
-                object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
-                if i==1:
-                    object_location[i] = limits[0]
+            for i in range(2): #, <- we don't adjust z, cut x and y only
+                limits = lims[i]
+                if isVis == 0:
+                    object_dimensions[i] = 0
+                elif limits[1] == limits[3] and limits[0] == limits[2]:
+                    pass 
                 else:
-                    object_location[i] = (limits[0] + limits[1]) / 2
-            
+                    print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
+                    object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
+                    if i==1:
+                        object_location[i] = limits[0]
+                    else:
+                        object_location[i] = (limits[0] + limits[1]) / 2
+                
         print("After :", object_type, object_dimensions)
         return object_dimensions, object_location, isVis
         
@@ -198,12 +200,13 @@ class GenerateLayouts(object):
 
                 cutting_plane_limits = {}
                 # cplns = []    
+                key_cp = 0
                 for i in range(18, 18+3*14, 14):
                     one_plane = labels[i:i+14]
                     ###print(one_plane)
                     #can parse here
-                    cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
-
+                    cutting_plane_limits[key_cp] = list(map(float, one_plane[1:]))
+                    key_cp += 1
                 
                 object_location = list(map(float,labels[3:6]))
                 # object_orientation = labels[6:9]
