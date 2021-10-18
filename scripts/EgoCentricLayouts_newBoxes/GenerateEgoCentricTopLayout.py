@@ -15,7 +15,7 @@ class GenerateEgoCentricTopLayout(object):
         self.res = self.length / self.layout_size
         self.DEBUG = Constants.DEBUG
         self.annotations = {}
-        self.scale = 2
+        self.scale = 1
     
     def eul2rot(self, theta) :
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
@@ -278,13 +278,20 @@ class GenerateEgoCentricTopLayout(object):
             box["center"] = [float(box_center_x) - float(center_x), float(box_center_y)-float(center_y)]
         return [shelf, boxes]
 
-    def getShelfLayout(self, shelf):
+    def getShelfLayout(self, shelfs):
         layout = np.zeros(
             (int(self.length/self.res), 
             int(self.width/self.res))
         )
         layout = Image.fromarray(layout)
-        layout, centers =  self.getOneLayout(shelf,layout, 115)
+        a = 0
+        for shelf in shelfs:
+            print("a : ", a)
+            a += 1
+            layout, centers =  self.getOneLayout(shelf,layout, 115)
+            nm = "./"+shelf["object_name"]+str(a)+".png"
+            # layout.save(nm)
+            # print(a)
         return self.accountCameraRotation(shelf["camera_rotation"], layout), centers
 
     def getBoxesLayouts(self, boxes, center_of_shelf):
@@ -309,7 +316,7 @@ class GenerateEgoCentricTopLayout(object):
         #print(center_of_shelf)
         x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
         center_x = int(float(x) / self.res + self.width / (2*self.res))
-        center_y = int(float(y) / self.res - 2.2/self.res)
+        center_y = int(float(y) / self.res)# - 2.2/self.res)
         center_x = center_of_shelf[0] - self.scale*(center_of_shelf[0]-center_x)
         center_y = center_of_shelf[1] - self.scale*(center_of_shelf[1]-center_y)
 
@@ -323,15 +330,19 @@ class GenerateEgoCentricTopLayout(object):
         layout = layout.convert('L')
         return layout
 
-    def getOneLayout(self,annotation, layout, fill):
+    def getOneLayout(self, annotation, layout, fill):
         x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
+        # print(x, y)
         center_x = int(float(x) / self.res + self.width / (2*self.res))
-        center_y = int(float(y) / self.res - 2.2/self.res)
-        
+        center_y = int(float(y) / self.res)# - 2.2/self.res)
+        # center_x = int(self.length/(self.res*2) + (center_x - self.length/(self.res*2))*self.scale)
         orient = 0 #float(annotation["ego_rotation_y"])
         dimensions = annotation["object_dimensions"]
+        # obj_w = int(float(dimensions[2])/self.res)*self.scale
+        # obj_l = int(float(dimensions[0])/self.res)*self.scale
         obj_w = int(float(dimensions[2])/self.res)*self.scale
         obj_l = int(float(dimensions[0])/self.res)*self.scale
+        print(dimensions, obj_w, obj_l)
         rectangle = self.get_rect(center_x, int(self.length/self.res) -center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)
         draw.polygon([tuple(p) for p in rectangle], fill=fill)

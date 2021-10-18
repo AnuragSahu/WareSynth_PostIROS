@@ -85,7 +85,7 @@ class GenerateLayouts(object):
         return np.array(RT)
 
     def get_percentage_visible(self, cutting_planes_visible, object_dimensions, object_location, object_type):
-
+        print("Before :", object_type, object_dimensions)
         # bounds_vis[1] = minX[1];
 		# bounds_vis[2] = maxX[1];
 		# bounds_vis[3] = minY[1];
@@ -101,7 +101,6 @@ class GenerateLayouts(object):
 		# bounds_vis[12] = maxZ[0];
 		
 		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
-		
         # do right and left things here
         for plane in cutting_planes_visible:
             bounds_vis = cutting_planes_visible[plane]
@@ -121,11 +120,14 @@ class GenerateLayouts(object):
                 elif limits[1] == limits[3] and limits[0] == limits[2]:
                     pass 
                 else:
+                    print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
                     object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
-                    if i==2:
+                    if i==1:
                         object_location[i] = limits[0]
-                    # else:
-
+                    else:
+                        object_location[i] = (limits[0] + limits[1]) / 2
+                
+        print("After :", object_type, object_dimensions)
         return object_dimensions, object_location, isVis
         
     def get_locations(self, obj_loc, cam_loc, cam_rot):
@@ -253,7 +255,7 @@ class GenerateLayouts(object):
                 object_location = [float(i) for i in object_location]
 
                 # print(labels[0:3], object_dimensions, object_location)
-                object_dimensions, object_location, isVis = self.get_percentage_visible(cutting_plane_limits, object_dimensions, object_location, object_type)
+                object_dimensions, object_location, isVis = self.get_percentage_visible(cutting_plane_limits, object_dimensions, object_location, labels[0])
                 object_location[1] += object_dimensions[1]/2
                 
                 if isVis == 0:
@@ -298,21 +300,21 @@ class GenerateLayouts(object):
             min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
                 shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
-                if shelf_and_box_val[0] != None: # if the shelf is not visible then do not generate the box
+                if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # p##print(shelfs_and_boxes)
             generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
-            aa, bb, cc, dd, ee, ff)
+            # generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
+            # aa, bb, cc, dd, ee, ff)
             # return
 
     def get_shelf_and_boxes(self, shelfNumber, curr_annotations):
-        shelf = None
+        shelf = []
         boxes = []
         for annotation in curr_annotations.values():
             if(annotation["shelf_number"] == shelfNumber):
                 if(annotation["object_type"] == "Shelf"):
-                    shelf = annotation
+                    shelf.append(annotation)
                 elif(annotation["object_type"] == "Box"):
                     boxes.append(annotation)
         return [shelf,boxes]
