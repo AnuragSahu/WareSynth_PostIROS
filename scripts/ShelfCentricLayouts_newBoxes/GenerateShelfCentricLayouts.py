@@ -169,11 +169,10 @@ class GenerateLayouts(object):
         for file in files:
             print("For file no. %d"%(self.count))
             self.count += 1
-            if self.count == 10:
-                return
+
             ID = file.split("/")[-1]
-            # if ID == "000000.txt":
-            #     break
+            # if ID != "000002.txt":
+            #     continue
             f = open(file, "r")
             annotationLines = f.readlines()
             rack_in_focus = annotationLines[0].strip('\n')
@@ -206,14 +205,14 @@ class GenerateLayouts(object):
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
 
-                interShelfDistance = self.dimensions_map["Shelf"][1]
+                interShelfDistance = self.dimensions_map["Shelf_1"][1]
                 
                 
                 
 
                 if labels[0][0] == 'S':
                     object_type = "Shelf"
-                    object_dimensions_old = self.dimensions_map["Shelf"]
+                    object_dimensions_old = self.dimensions_map["Shelf_1"]
                 else:
                     object_type = "Box"
                     # object_dimensions = self.dimensions_map[labels[0].split(" stack ")[0]]

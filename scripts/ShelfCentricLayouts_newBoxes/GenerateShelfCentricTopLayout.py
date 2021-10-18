@@ -9,8 +9,8 @@ from FileNameManager import filePathManager
 
 class GenerateShelfCentricTopLayout(object):
     def __init__(self):
-        self.length = Constants.LENGTH
-        self.width = Constants.WIDTH
+        self.length = 4
+        self.width = 4
         self.layout_size = Constants.LAYOUT_SIZE
         self.res = self.length / self.layout_size
         self.DEBUG = Constants.DEBUG

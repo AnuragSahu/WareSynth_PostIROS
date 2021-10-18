@@ -6,6 +6,7 @@ class FilePathManager(object):
     def __init__(self):
         
         self.datasetDumpDirectory = "/home/anurag/Research/data/NewLayouts/data_subset/"
+        self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         # self.datasetDumpDirectory = "/home/avinash/Desktop/unity_retail/data/"
         # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_diverse/"
         # self.datasetDumpDirectory = "/scratch/data_diverse_egocentric/"

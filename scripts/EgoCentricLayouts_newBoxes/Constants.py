@@ -4,7 +4,7 @@ GENERATE_KITTI = False
 GENERATE_TOP = True
 GENERATE_FRONT = True
 
-DEBUG = False
+DEBUG = True
 
 # Data splits
 TRAIN_PERCENTAGE = 0.9
@@ -18,8 +18,8 @@ LOG_FILE_PATH = "./dataGenerationLogs.txt"
 
 # For Layout Generation
 MAX_SHELVES = 3
-LENGTH = 5.5
-WIDTH = 5.5
+LENGTH = 8
+WIDTH = 8
 LAYOUT_SIZE = 512.0
 MAX_SHELF_DIFF_VAL = 4
 
