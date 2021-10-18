@@ -84,10 +84,7 @@ class GenerateLayouts(object):
         ])
         return np.array(RT)
 
-    def get_percentage_visible(self, cutting_planes_visible):
-        percents_x = []
-        percents_y = []
-        percents_z = []
+    def get_percentage_visible(self, cutting_planes_visible, object_dimensions, object_location, object_type):
 
         # bounds_vis[1] = minX[1];
 		# bounds_vis[2] = maxX[1];
@@ -106,21 +103,31 @@ class GenerateLayouts(object):
 		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
 		
         # do right and left things here
-        planes_viz = 0
         for plane in cutting_planes_visible:
             bounds_vis = cutting_planes_visible[plane]
-            ###print(bounds_vis)
-            if bounds_vis[0] == 0:
-                percents_x.append(0)
-                percents_y.append(0)
-            else:
-                percents_x.append( (bounds_vis[2] - bounds_vis[1])/(bounds_vis[8] - bounds_vis[7]) )
-                percents_y.append( (bounds_vis[4] - bounds_vis[3])/(bounds_vis[10] - bounds_vis[9]) )
-                planes_viz += 1
 
-        return min(percents_x), min(percents_y), planes_viz*0.5  
+            isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
 
+            lims = [
+                [minX, maxX, MINx, MAXx],
+                [minY, maxY, MINy, MAXy],
+                [minZ, maxZ, MINz, MAXz]
+            ]
 
+            for i in range(2): #, <- we don't adjust z, cut x and y only
+                limits = lims[i]
+                if isVis == 0:
+                    object_dimensions[i] = 0
+                elif limits[1] == limits[3] and limits[0] == limits[2]:
+                    pass 
+                else:
+                    object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
+                    if i==2:
+                        object_location[i] = limits[0]
+                    # else:
+
+        return object_dimensions, object_location, isVis
+        
     def get_locations(self, obj_loc, cam_loc, cam_rot):
         RT = self.get_3x4_RT(cam_loc, cam_rot)
         extra_vec = np.array([0,0,0,1])
@@ -167,15 +174,16 @@ class GenerateLayouts(object):
 
     def generate_layout_from_file(self, files, dump_path, aa, bb, cc, dd, ee, ff):
         for file in files:
-            print("For file no. %d"%(self.count))
+            # print("For file no. %d"%(self.count))
             self.count += 1
 
             ID = file.split("/")[-1]
-            # if ID != "000004.txt":
+            print("For file",ID)
+            # if ID != "000000.txt":
             #     continue
             f = open(file, "r")
             annotationLines = f.readlines()
-            rack_in_focus = annotationLines[0].strip('\n')
+            # rack_in_focus = annotationLines[0].strip('\n')
             annotationLines = annotationLines[1:]
             annotationID = 0
             self.max_shelf_number = 0
@@ -194,9 +202,6 @@ class GenerateLayouts(object):
                     #can parse here
                     cutting_plane_limits[one_plane[0]] = list(map(float, one_plane[1:]))
 
-                percent_visible_x, percent_visible_y, _ = self.get_percentage_visible(cutting_plane_limits)
-                if  percent_visible_x == 0 or percent_visible_y < 0.50: #or whatever threshold
-                    continue
                 
                 object_location = list(map(float,labels[3:6]))
                 # object_orientation = labels[6:9]
@@ -232,6 +237,8 @@ class GenerateLayouts(object):
                 object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
 
 
+                
+
                 if labels[0] == "Shelf_0":
                     #print(object_dimensions[1])
                     object_dimensions[1] *= (0.9895935 - 0.02)/ (0.9895935 + 0.77)
@@ -241,15 +248,19 @@ class GenerateLayouts(object):
                 elif labels[0] == "Shelf_2":
                     object_dimensions[1] -= 0.1
 
-                # object_dimensions[0] *= 2
-                # object_dimensions[1] *= 2
-                # object_dimensions[2] *= 2
-
                 shelf_number = int(labels[2].split('_')[-1])
 
                 object_location = [float(i) for i in object_location]
+
+                # print(labels[0:3], object_dimensions, object_location)
+                object_dimensions, object_location, isVis = self.get_percentage_visible(cutting_plane_limits, object_dimensions, object_location, object_type)
                 object_location[1] += object_dimensions[1]/2
                 
+                if isVis == 0:
+                    continue
+                else:
+                    # print(object_dimensions, object_location, "\n\n\n\n")
+                    pass
                 # ##print("Object Location : ",object_location)
                 # ##print("Camera Location : ",camera_location)
                 objectEgoCentricLocation = self.get_locations(object_location, 
@@ -264,20 +275,19 @@ class GenerateLayouts(object):
                 
                 ##print(object_dimensions)
 
-                if(rack_in_focus == labels[1] or not Constants.RACK_IN_FOCUS):
-                    curr_annotations[annotationID] = {
-                        "object_name" : labels[0],
-                        "object_type" : object_type,
-                        "shelf_number" : shelf_number,
-                        "object_location" : object_location,
-                        "object_ego_location" : objectEgoCentricLocation,
-                        "ego_rotation_y" : objectEgoCentricRotation_y,
-                        "object_dimensions" : copy.deepcopy(object_dimensions),
-                        "camera_location" : camera_location,
-                        "camera_rotation" : camera_rotation,
-                        "center" : [0,0],
-                        "interShelfDistance" : interShelfDistance
-                    }
+                curr_annotations[annotationID] = {
+                    "object_name" : labels[0],
+                    "object_type" : object_type,
+                    "shelf_number" : shelf_number,
+                    "object_location" : object_location,
+                    "object_ego_location" : objectEgoCentricLocation,
+                    "ego_rotation_y" : objectEgoCentricRotation_y,
+                    "object_dimensions" : copy.deepcopy(object_dimensions),
+                    "camera_location" : camera_location,
+                    "camera_rotation" : camera_rotation,
+                    "center" : [0,0],
+                    "interShelfDistance" : interShelfDistance
+                }
                 # ##print(curr_annotations[annotationID])
                 # ##print()
                 # if(shelf_number > self.max_shelf_number):
