@@ -85,7 +85,7 @@ class GenerateLayouts(object):
         return np.array(RT)
 
     def get_percentage_visible(self, cutting_planes_visible, object_dimensions, object_location, object_type):
-        print("Before :", object_type, object_dimensions)
+        # print("Before :", object_type, object_dimensions)
         # bounds_vis[1] = minX[1];
 		# bounds_vis[2] = maxX[1];
 		# bounds_vis[3] = minY[1];
@@ -103,33 +103,33 @@ class GenerateLayouts(object):
 		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
         # do right and left things here
 
-        for plane in cutting_planes_visible:
            
-            bounds_vis = cutting_planes_visible[plane]
+        bounds_vis = cutting_planes_visible[0]
+        
 
-            isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
+        isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
 
-            lims = [
-                [minX, maxX, MINx, MAXx],
-                [minY, maxY, MINy, MAXy],
-                [minZ, maxZ, MINz, MAXz]
-            ]
+        lims = [
+            [minX, maxX, MINx, MAXx],
+            [minY, maxY, MINy, MAXy],
+            [minZ, maxZ, MINz, MAXz]
+        ]
 
-            for i in range(2): #, <- we don't adjust z, cut x and y only
-                limits = lims[i]
-                if isVis == 0:
-                    object_dimensions[i] = 0
-                elif limits[1] == limits[3] and limits[0] == limits[2]:
-                    pass 
+        for i in range(2): #, <- we don't adjust z, cut x and y only
+            limits = lims[i]
+            if isVis == 0:
+                object_dimensions[i] = 0
+            elif limits[1] == limits[3] and limits[0] == limits[2]:
+                pass 
+            else:
+                # print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
+                object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
+                if i==1:
+                    object_location[i] = limits[0]
                 else:
-                    print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
-                    object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
-                    if i==1:
-                        object_location[i] = limits[0]
-                    else:
-                        object_location[i] = (limits[0] + limits[1]) / 2
+                    object_location[i] = (limits[0] + limits[1]) / 2
                 
-        print("After :", object_type, object_dimensions)
+        # print("After :", object_type, object_dimensions)
         return object_dimensions, object_location, isVis
         
     def get_locations(self, obj_loc, cam_loc, cam_rot):
@@ -307,8 +307,8 @@ class GenerateLayouts(object):
                     shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # p##print(shelfs_and_boxes)
             generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            # generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
-            # aa, bb, cc, dd, ee, ff)
+            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
+            aa, bb, cc, dd, ee, ff)
             # return
 
     def get_shelf_and_boxes(self, shelfNumber, curr_annotations):

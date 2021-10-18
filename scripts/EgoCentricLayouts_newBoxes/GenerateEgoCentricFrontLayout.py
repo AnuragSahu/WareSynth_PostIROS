@@ -15,19 +15,26 @@ class GenerateEgoCentricFrontLayout(object):
         self.DEBUG = Constants.DEBUG
 
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number, aa, bb, cc, dd, ee, ff):
-        # p#print(shelf_and_boxes)
+        # print(shelf_and_boxes)
         shelf_layouts = {}
         box_layouts = {}
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             if shelf_number not in shelf_and_boxes:
                 continue
-            shelf, boxes = shelf_and_boxes[shelf_number]
-            interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
-            centerX, centerY, _ = shelf["object_ego_location"]
-            camera_rotation_z = shelf["camera_rotation"][1]
-            layout_shelf, bottom_y = self.generateFrontalLayoutShelf(shelf, centerX , centerY, interShelfDistance)
-            layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
+            shelfs, boxes = shelf_and_boxes[shelf_number]
+            shelf = self.getProminentShelfAnnotation(shelfs)
+            layout = np.zeros(
+                (int(self.length/self.res), 
+                int(self.width/self.res))
+            )
+            layout_shelf = Image.fromarray(layout)
+            for shelf in shelfs:
+                interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
+                centerX, centerY, _ = shelf["object_ego_location"]
+                camera_rotation_z = shelf["camera_rotation"][1]
+                layout_shelf, bottom_y = self.generateFrontalLayoutShelf(layout_shelf, shelf, centerX , centerY, interShelfDistance)
+                layout_shelf = self.accountCameraRotation(layout_shelf, camera_rotation_z)
             shelf_layouts[shelf_number] = layout_shelf
 
             layout_box = self.generateFrontalLayoutBoxes(boxes, centerX, centerY)
@@ -36,12 +43,17 @@ class GenerateEgoCentricFrontLayout(object):
 
         self.write_layouts(shelf_layouts, box_layouts, interShelfDistance, ID, dump_path, aa, bb, cc, dd, ee, ff)
 
-    def generateFrontalLayoutShelf(self, annotation, img_x, img_y, obj_w):
-        layout = np.zeros(
-            (int(self.length/self.res), 
-            int(self.width/self.res))
-        )
-        layout = Image.fromarray(layout)
+    def getProminentShelfAnnotation(self, shelves):
+        mx = 0
+        ret_an = None
+        for shelf in shelves:
+            if(shelf["object_dimensions"][0] > mx):
+                ret_an = shelf
+                mx = shelf["object_dimensions"][0]
+        return ret_an
+
+    def generateFrontalLayoutShelf(self, layout, annotation, img_x, img_y, obj_w):
+        
         x,y,_ = annotation["object_ego_location"]
         center_x = int((float(x)) / self.res + self.width / (2*self.res))
         center_y = int((-float(y)) / self.res + self.length / (2*self.res))

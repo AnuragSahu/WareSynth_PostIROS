@@ -286,10 +286,11 @@ class GenerateEgoCentricTopLayout(object):
         layout = Image.fromarray(layout)
         a = 0
         for shelf in shelfs:
-            print("a : ", a)
-            a += 1
-            layout, centers =  self.getOneLayout(shelf,layout, 115)
+            # print("a : ", a)
+            # a += 1
             nm = "./"+shelf["object_name"]+str(a)+".png"
+            layout, centers =  self.getOneLayout(shelf,layout, 115, nm)
+            
             # layout.save(nm)
             # print(a)
         return self.accountCameraRotation(shelf["camera_rotation"], layout), centers
@@ -330,7 +331,7 @@ class GenerateEgoCentricTopLayout(object):
         layout = layout.convert('L')
         return layout
 
-    def getOneLayout(self, annotation, layout, fill):
+    def getOneLayout(self, annotation, layout, fill, nm):
         x,y = annotation["object_ego_location"][0], annotation["object_ego_location"][2]
         # print(x, y)
         center_x = int(float(x) / self.res + self.width / (2*self.res))
@@ -340,13 +341,18 @@ class GenerateEgoCentricTopLayout(object):
         dimensions = annotation["object_dimensions"]
         # obj_w = int(float(dimensions[2])/self.res)*self.scale
         # obj_l = int(float(dimensions[0])/self.res)*self.scale
+        ###############################################
+        ###############################################
+        # HARCODED Value !!!!!!
+        dimensions[0] -= 0.1
+        
         obj_w = int(float(dimensions[2])/self.res)*self.scale
         obj_l = int(float(dimensions[0])/self.res)*self.scale
-        print(dimensions, obj_w, obj_l)
         rectangle = self.get_rect(center_x, int(self.length/self.res) -center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)
         draw.polygon([tuple(p) for p in rectangle], fill=fill)
         layout = layout.convert('L')
+        # layout.save(nm)
         return layout, (center_x, center_y)
 
     def get_rect(self, x, y, width, height, theta):
