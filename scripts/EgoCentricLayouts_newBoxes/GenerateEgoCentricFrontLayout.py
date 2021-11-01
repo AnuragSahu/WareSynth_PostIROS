@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from pprint import pprint
 from PIL import Image, ImageDraw, ImageOps
+from utils import chop_corners
 
 class GenerateEgoCentricFrontLayout(object):
     def __init__(self):
@@ -25,8 +26,9 @@ class GenerateEgoCentricFrontLayout(object):
             shelfs, boxes = shelf_and_boxes[shelf_number]
             shelf = self.getProminentShelfAnnotation(shelfs)
             layout = np.zeros(
-                (int(self.length/self.res), 
-                int(self.width/self.res))
+                [int(self.length/self.res), 
+                int(self.width/self.res)],
+                dtype= np.uint8
             )
             layout_shelf = Image.fromarray(layout)
             for shelf in shelfs:
@@ -77,8 +79,9 @@ class GenerateEgoCentricFrontLayout(object):
 
     def generateFrontalLayoutBoxes(self, annotations, img_x, img_y):
         layout = np.zeros(
-            (int(self.length/self.res), 
-            int(self.width/self.res))
+            [int(self.length/self.res), 
+            int(self.width/self.res)],
+            dtype= np.uint8
         )
         layout = Image.fromarray(layout)
         for annotation in annotations:
@@ -146,7 +149,8 @@ class GenerateEgoCentricFrontLayout(object):
                     for j in range(len(pixels[i])):
                         if(pixelsb[i][j] != 255):
                             pixelsb[i][j] = pixels[i][j]
-                pixels = np.array(pixelsb)    
+                pixels = np.array(pixelsb) 
+                pixels = chop_corners(pixels)   
 
                 perm_string = str(aa) + str(bb) + str(cc) + str(dd) + str(ee) + str(ff)
                 perm_string = ""

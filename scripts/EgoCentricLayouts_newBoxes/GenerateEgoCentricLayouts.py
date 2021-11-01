@@ -253,6 +253,9 @@ class GenerateLayouts(object):
                 elif labels[0] == "Shelf_2":
                     object_dimensions[1] -= 0.1
 
+                if(labels[0][:5] == "Shelf"):
+                    object_dimensions[0] *= 1
+
                 shelf_number = int(labels[2].split('_')[-1])
 
                 object_location = [float(i) for i in object_location]
@@ -303,8 +306,9 @@ class GenerateLayouts(object):
             min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
                 shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
-                if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
-                    shelfs_and_boxes[shelf_number] = shelf_and_box_val
+                if(len(shelf_and_box_val) >= 1 and len(shelf_and_box_val[0]) >= 1):
+                    if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
+                        shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # p##print(shelfs_and_boxes)
             generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,

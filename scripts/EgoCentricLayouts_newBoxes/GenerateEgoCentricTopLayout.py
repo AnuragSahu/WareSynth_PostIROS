@@ -5,6 +5,7 @@ import mathutils
 from PIL import Image, ImageDraw
 import Constants
 from FileNameManager import filePathManager
+from utils import chop_corners
 # from preProcessing.FillRackGaps import fillRackGaps
 
 class GenerateEgoCentricTopLayout(object):
@@ -280,8 +281,9 @@ class GenerateEgoCentricTopLayout(object):
 
     def getShelfLayout(self, shelfs):
         layout = np.zeros(
-            (int(self.length/self.res), 
-            int(self.width/self.res))
+            [int(self.length/self.res), 
+            int(self.width/self.res)],
+            dtype= np.uint8
         )
         layout = Image.fromarray(layout)
         a = 0
@@ -297,8 +299,9 @@ class GenerateEgoCentricTopLayout(object):
 
     def getBoxesLayouts(self, boxes, center_of_shelf):
         layout = np.zeros(
-            (int(self.length/self.res), 
-            int(self.width/self.res))
+            [int(self.length/self.res), 
+            int(self.width/self.res)],
+            dtype= np.uint8
         )
         layout = Image.fromarray(layout)
         camera_layout = None
@@ -392,7 +395,8 @@ class GenerateEgoCentricTopLayout(object):
                     for j in range(len(pixels[i])):
                         if(pixelsb[i][j] != 255):
                             pixelsb[i][j] = pixels[i][j]
-                pixels = np.array(pixelsb)    
+                pixels = np.array(pixelsb) 
+                pixels = chop_corners(pixels)
 
             if(self.DEBUG):
                 cv2.imwrite(filePathManager.getDebugRackLayoutPath("top",ID, write_track), pixels)
