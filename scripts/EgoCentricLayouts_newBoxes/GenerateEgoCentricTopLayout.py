@@ -396,7 +396,11 @@ class GenerateEgoCentricTopLayout(object):
                         if(pixelsb[i][j] != 255):
                             pixelsb[i][j] = pixels[i][j]
                 pixels = np.array(pixelsb) 
-                pixels = chop_corners(pixels)
+
+                ################################################################
+                # Uncomment this section for chopping off the boxes outside rack
+                # pixels = chop_corners(pixels)
+                ################################################################
 
             if(self.DEBUG):
                 cv2.imwrite(filePathManager.getDebugRackLayoutPath("top",ID, write_track), pixels)

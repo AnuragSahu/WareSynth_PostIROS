@@ -150,7 +150,11 @@ class GenerateEgoCentricFrontLayout(object):
                         if(pixelsb[i][j] != 255):
                             pixelsb[i][j] = pixels[i][j]
                 pixels = np.array(pixelsb) 
-                pixels = chop_corners(pixels)   
+                
+                ################################################################
+                # Uncomment this section for chopping off the boxes outside rack
+                # pixels = chop_corners(pixels)   
+                ################################################################
 
                 perm_string = str(aa) + str(bb) + str(cc) + str(dd) + str(ee) + str(ff)
                 perm_string = ""
