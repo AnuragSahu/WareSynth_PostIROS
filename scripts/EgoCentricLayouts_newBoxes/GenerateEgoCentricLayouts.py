@@ -103,7 +103,7 @@ class GenerateLayouts(object):
 		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
         # do right and left things here
 
-           
+        
         bounds_vis = cutting_planes_visible[0]
         
 
@@ -123,7 +123,8 @@ class GenerateLayouts(object):
                 pass 
             else:
                 # print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
-                object_dimensions[i]*= (limits[1] - limits[0])/(limits[3] - limits[2])
+                # object_dimensions[i] *= (limits[1] - limits[0])/(limits[3] - limits[2])
+                object_dimensions[i] = limits[1] - limits[0]
                 if i==1:
                     object_location[i] = limits[0]
                 else:
@@ -182,9 +183,9 @@ class GenerateLayouts(object):
             self.count += 1
 
             ID = file.split("/")[-1]
-            print("For file",ID)
-            # if ID != "000000.txt":
+            # if ID != "000001.txt":
             #     continue
+            print("For file",ID)
             f = open(file, "r")
             annotationLines = f.readlines()
             # rack_in_focus = annotationLines[0].strip('\n')
@@ -244,17 +245,17 @@ class GenerateLayouts(object):
 
                 
 
-                if labels[0] == "Shelf_0":
-                    #print(object_dimensions[1])
-                    object_dimensions[1] *= (0.9895935 - 0.02)/ (0.9895935 + 0.77)
-                    object_dimensions[1] = 1
-                    #print(object_dimensions[1])
-                    #print()
-                elif labels[0] == "Shelf_2":
-                    object_dimensions[1] -= 0.1
+                # if labels[0] == "Shelf_0":
+                #     #print(object_dimensions[1])
+                #     # object_dimensions[1] *= (0.9895935 - 0.02)/ (0.9895935 + 0.77)
+                #     # object_dimensions[1] = 1
+                #     #print(object_dimensions[1])
+                #     #print()
+                # elif labels[0] == "Shelf_2":
+                #     object_dimensions[1] -= 0.1
 
-                if(labels[0][:5] == "Shelf"):
-                    object_dimensions[0] *= 1
+                # if(labels[0][:5] == "Shelf"):
+                #     object_dimensions[0] *= 1
 
                 shelf_number = int(labels[2].split('_')[-1])
 
@@ -272,7 +273,7 @@ class GenerateLayouts(object):
                 # ##print("Object Location : ",object_location)
                 # ##print("Camera Location : ",camera_location)
                 objectEgoCentricLocation = self.get_locations(object_location, 
-                                                                    camera_location, camera_rotation)
+                                                              camera_location, camera_rotation)
 
                 # ##print("objectEgoCentricLocation : ", objectEgoCentricLocation)                                                                    
 
@@ -285,6 +286,7 @@ class GenerateLayouts(object):
 
                 curr_annotations[annotationID] = {
                     "object_name" : labels[0],
+                    "rack_number" : labels[1],
                     "object_type" : object_type,
                     "shelf_number" : shelf_number,
                     "object_location" : object_location,
@@ -301,7 +303,7 @@ class GenerateLayouts(object):
                 # if(shelf_number > self.max_shelf_number):
                     # self.max_shelf_number = shelf_number
                 annotationID += 1
-    
+            
             shelfs_and_boxes = {}
             min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
@@ -309,22 +311,104 @@ class GenerateLayouts(object):
                 if(len(shelf_and_box_val) >= 1 and len(shelf_and_box_val[0]) >= 1):
                     if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
                         shelfs_and_boxes[shelf_number] = shelf_and_box_val
-            # p##print(shelfs_and_boxes)
+            # print(shelfs_and_boxes)
             generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
             generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
             aa, bb, cc, dd, ee, ff)
             # return
 
+    def findObjectExtent(self, annotation):
+        dim = annotation["object_dimensions"]
+        center = annotation["object_location"]
+        
+        maxX = center[0] + dim[0] / 2
+        minX = center[0] - dim[0] / 2
+        maxY = center[1] + dim[1] / 2
+        minY = center[1] - dim[1] / 2
+        maxZ = center[2] + dim[2] / 2
+        minZ = center[2] - dim[2] / 2
+
+        return [maxX, minX, maxY, minY, maxZ, minZ]
+
     def get_shelf_and_boxes(self, shelfNumber, curr_annotations):
-        shelf = []
+        shelves = []
         boxes = []
+
         for annotation in curr_annotations.values():
             if(annotation["shelf_number"] == shelfNumber):
                 if(annotation["object_type"] == "Shelf"):
-                    shelf.append(annotation)
+                    shelves.append(annotation)
+
+                    # obj = copy.deepcopy(annotation)
+                    # obj["object_type"] = "Box"
+                    # boxes.append(obj)
+
                 elif(annotation["object_type"] == "Box"):
                     boxes.append(annotation)
-        return [shelf,boxes]
+
+        # print("asasdasd", len(shelf))
+
+        # return [shelves, boxes]
+
+        for shelf in shelves:
+            # print("Rack number", shelf["rack_number"])
+            # print("Shelf number", shelf["shelf_number"])
+            # print("Old dimensions", shelf["object_dimensions"])
+            # print("Old extent", *self.findObjectExtent(shelf))
+
+            # find X,Y extent of boxes
+            maxX = -1e9
+            minX = 1e9
+            maxY = -1e9
+            minY = 1e9
+            maxZ = -1e9
+            minZ = 1e9
+
+            for box in boxes:
+                if shelf["rack_number"] == box["rack_number"]:
+                    extent = self.findObjectExtent(box)
+                    maxX = max(maxX, extent[0])
+                    minX = min(minX, extent[1])
+                    maxY = max(maxY, extent[2])
+                    minY = min(minY, extent[3])
+                    maxZ = max(maxZ, extent[4])
+                    minZ = min(minZ, extent[5])
+
+                    # print("box Extent", *self.findObjectExtent(box))
+                    # print("For loop", maxX, minX, maxY, minY)
+
+            extent = self.findObjectExtent(shelf)
+            maxX = max(maxX, extent[0])
+            minX = min(minX, extent[1])
+            maxY = max(maxY, extent[2])
+            minY = min(minY, extent[3])
+            maxZ = max(maxZ, extent[4])
+            minZ = min(minZ, extent[5])
+
+            shelf_dim = [maxX - minX, maxY - minY, maxZ - minZ]
+            shelf_center = [minX + shelf_dim[0] / 2, minY + shelf_dim[1] / 2, minZ + shelf_dim[2] / 2]
+
+            shelf["object_dimensions"] = shelf_dim
+            shelf["object_location"] = shelf_center
+            shelf["object_ego_location"] = self.get_locations(shelf["object_location"], 
+                                                              shelf["camera_location"], 
+                                                              shelf["camera_rotation"])
+
+            # print("New dimensions", shelf["shelf_number"], shelf["object_dimensions"])
+            # print("New extent", *self.findObjectExtent(shelf))
+            # print(maxX, minX, maxY, minY)
+
+            # obj = copy.deepcopy(shelf)
+            # obj["object_type"] = "Box"
+            # boxes.append(obj)
+
+        # print("Here3", shelf[0]["object_dimensions"][0] - shelf_dim[0], 
+        #       shelf[0]["object_dimensions"][1] - shelf_dim[1])
+        # print("Here4", shelf[0]["object_location"][0] - shelf_center[0], 
+        #                   shelf[0]["object_location"][1] - shelf_center[1])
+
+
+        return [shelves, boxes]
 
     def getInterShelfDistance(self):
         min_shelf, _ = self.get_shelf_range()

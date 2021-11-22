@@ -347,7 +347,7 @@ class GenerateEgoCentricTopLayout(object):
         ###############################################
         ###############################################
         # HARCODED Value !!!!!!
-        dimensions[0] -= 0.1
+        # dimensions[0] -= 0.1
         
         obj_w = int(float(dimensions[2])/self.res)*self.scale
         obj_l = int(float(dimensions[0])/self.res)*self.scale

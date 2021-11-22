@@ -24,7 +24,7 @@ class GenerateEgoCentricFrontLayout(object):
             if shelf_number not in shelf_and_boxes:
                 continue
             shelfs, boxes = shelf_and_boxes[shelf_number]
-            shelf = self.getProminentShelfAnnotation(shelfs)
+            # shelf = self.getProminentShelfAnnotation(shelfs)
             layout = np.zeros(
                 [int(self.length/self.res), 
                 int(self.width/self.res)],
