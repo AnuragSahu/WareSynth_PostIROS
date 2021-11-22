@@ -15,6 +15,12 @@ class GenerateEgoCentricFrontLayout(object):
         self.res = self.length / self.layout_size 
         self.DEBUG = Constants.DEBUG
 
+    def roundToInt(self, val):
+        offset = 0
+        if abs(int(val) - val) > 0.3:
+            offset = 1
+        return int(val) + (offset if val > int(val) else -offset)
+
     def writeLayout(self, ID, dump_path, shelf_and_boxes, min_shelf_number, max_shelf_number, aa, bb, cc, dd, ee, ff):
         # print(shelf_and_boxes)
         shelf_layouts = {}
@@ -26,8 +32,8 @@ class GenerateEgoCentricFrontLayout(object):
             shelfs, boxes = shelf_and_boxes[shelf_number]
             # shelf = self.getProminentShelfAnnotation(shelfs)
             layout = np.zeros(
-                [int(self.length/self.res), 
-                int(self.width/self.res)],
+                [self.roundToInt(self.length/self.res), 
+                self.roundToInt(self.width/self.res)],
                 dtype= np.uint8
             )
             layout_shelf = Image.fromarray(layout)
@@ -57,14 +63,14 @@ class GenerateEgoCentricFrontLayout(object):
     def generateFrontalLayoutShelf(self, layout, annotation, img_x, img_y, obj_w):
         
         x,y,_ = annotation["object_ego_location"]
-        center_x = int((float(x)) / self.res + self.width / (2*self.res))
-        center_y = int((-float(y)) / self.res + self.length / (2*self.res))
+        center_x = self.roundToInt((float(x)) / self.res + self.width / (2*self.res))
+        center_y = self.roundToInt((-float(y)) / self.res + self.length / (2*self.res))
         # center_y = int((float(img_y)-float(y)) / self.res + self.length / (2*self.res))
         orient = 0
         dimensions = annotation["object_dimensions"]
         # #print("FREE SPACE : ", obj_w)
-        obj_w = int((float(dimensions[1]))/self.res)
-        obj_l = int(float(dimensions[0])/self.res)
+        obj_w = self.roundToInt((float(dimensions[1]))/self.res)
+        obj_l = self.roundToInt(float(dimensions[0])/self.res)
         rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
         draw = ImageDraw.Draw(layout)
         draw.polygon([tuple(p) for p in rectangle], fill = 115)
@@ -79,20 +85,20 @@ class GenerateEgoCentricFrontLayout(object):
 
     def generateFrontalLayoutBoxes(self, annotations, img_x, img_y):
         layout = np.zeros(
-            [int(self.length/self.res), 
-            int(self.width/self.res)],
+            [self.roundToInt(self.length/self.res), 
+            self.roundToInt(self.width/self.res)],
             dtype= np.uint8
         )
         layout = Image.fromarray(layout)
         for annotation in annotations:
             x,y,_ = annotation["object_ego_location"]
-            center_x = int((float(x)) / self.res + self.width / (2*self.res))
-            center_y = int((-float(y)) / self.res + self.length / (2*self.res))
+            center_x = self.roundToInt((float(x)) / self.res + self.width / (2*self.res))
+            center_y = self.roundToInt((-float(y)) / self.res + self.length / (2*self.res))
             orient = 0
             dimensions = annotation["object_dimensions"]
             # print("BOX",dimensions[2])
-            obj_w = int(float(dimensions[1])/self.res)
-            obj_l = int(float(dimensions[0])/self.res)
+            obj_w = self.roundToInt(float(dimensions[1])/self.res)
+            obj_l = self.roundToInt(float(dimensions[0])/self.res)
             rectangle = self.get_rect(center_x, center_y, obj_l, obj_w, orient)
             draw = ImageDraw.Draw(layout)
             draw.polygon([tuple(p) for p in rectangle], fill = 255)
@@ -164,7 +170,7 @@ class GenerateEgoCentricFrontLayout(object):
                 final_layout_racks.append(pixels)
                 write_track += 1
 
-        empty_pixels = np.zeros((int(self.length/self.res), int(self.width/self.res)))
+        empty_pixels = np.zeros((self.roundToInt(self.length/self.res), self.roundToInt(self.width/self.res)))
         for shelf in range(empty_npy):
             if(self.DEBUG):
                 cv2.imwrite(filePathManager.getDebugRackLayoutPath("front",ID, write_track+shelf), empty_pixels)
