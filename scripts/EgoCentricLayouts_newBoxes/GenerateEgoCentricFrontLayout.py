@@ -199,6 +199,6 @@ class GenerateEgoCentricFrontLayout(object):
         # file_path = dump_path +"frontBox"+ ID[:-4]+ ".npy"
         # np.save(file_path,final_layouts_boxes)
     
-        np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
+        # np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
 
 generateEgoCentricFrontLayout = GenerateEgoCentricFrontLayout()
