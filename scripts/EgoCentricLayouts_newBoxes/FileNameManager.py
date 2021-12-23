@@ -30,6 +30,8 @@ class FilePathManager(object):
         self.anuragLayoutDebugImagespath = self.datasetDumpDirectory + "debugOutputs/"
         self.layoutPath = None
         self.probabilityValue = None
+        self.keypointImagesPath = self.datasetDumpDirectory + "keypointImages/"
+
         self.ensureDatasetDirectory()
 
 
@@ -52,6 +54,10 @@ class FilePathManager(object):
             pass
         try:
             os.makedirs(self.anuragEgoCentricLayouts)
+        except FileExistsError:
+            pass
+        try:
+            os.makedirs(self.keypointImagesPath)
         except FileExistsError:
             pass
         if(Constants.GENERATE_KITTI):
