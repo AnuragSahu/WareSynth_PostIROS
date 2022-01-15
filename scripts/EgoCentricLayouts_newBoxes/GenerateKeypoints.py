@@ -49,7 +49,7 @@ def main():
                 box_stacks[stack_num].append(line)
             # name of box
             except ValueError:
-                stack_num = int(line[0].split(" ")[-1])
+                stack_num = int(line[0].split(" ")[-2])
 
         # if (filename == "000000.txt"):
         #     with open('data.json', 'w+') as f:
