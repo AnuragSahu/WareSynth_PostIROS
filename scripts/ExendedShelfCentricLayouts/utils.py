@@ -2,6 +2,13 @@ import cv2
 import scipy.misc
 import numpy as np
 # import matplotlib.pyplot as plt
+def getZommedLayout(layout):
+    layout = cv2.resize(layout, None, fx = 10/8, fy = 10/8, interpolation = cv2.INTER_NEAREST)
+    l,h = layout.shape[0], layout.shape[1]
+    center_x, center_y = int(l/2), int(h/2)
+    layout = layout[center_x - int(512/2):center_x + int(512/2), center_y - int(512/2):center_y + int(512/2) ]
+    # print(layout.shape)
+    return layout
 
 def centerAlignImage(img):
     img.astype('int8')
@@ -48,7 +55,7 @@ def centerAlignImage(img):
         center_x - int(layout_height/2) : center_x - int(layout_height/2) + (max_x-min_x)] = layout
     
     # return the new centered layouts
-    return img
+    return getZommedLayout(img)
 
 def chop_corners(img_OG):
     # create a copy

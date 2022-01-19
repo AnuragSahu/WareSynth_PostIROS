@@ -10,7 +10,7 @@ class FilePathManager(object):
         # self.datasetDumpDirectory = "/home/avinash/Desktop/unity_retail/data/"
         # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_diverse/"
         # self.datasetDumpDirectory = "/home/anurag/Research/data/data_test/"
-        self.datasetDumpDirectory = "/scratch/data/"
+        self.datasetDumpDirectory = "/home/anurag/Research/Unity/data_8/"
         # self.datasetDumpDirectory = "/home/anurag/Downloads/data_new/"
         
         self.sceneCaptureNumber = 0
