@@ -404,7 +404,7 @@ class GenerateShelfCentricTopLayout(object):
 
                 ################################################################
                 # This makes the layout center aligned 
-                pixels = centerAlignImage(pixels)   
+                pixels = centerAlignImage(pixels)
                 ################################################################
 
             if(self.DEBUG):

@@ -1,6 +1,14 @@
 import cv2
 import scipy.misc
 import numpy as np
+# import matplotlib.pyplot as plt
+def getZommedLayout(layout):
+    layout = cv2.resize(layout, None, fx = 10/8, fy = 10/8, interpolation = cv2.INTER_NEAREST)
+    l,h = layout.shape[0], layout.shape[1]
+    center_x, center_y = int(l/2), int(h/2)
+    layout = layout[center_x - int(512/2):center_x + int(512/2), center_y - int(512/2):center_y + int(512/2) ]
+    # print(layout.shape)
+    return layout
 
 def centerAlignImage(img):
     img.astype('int8')
@@ -13,21 +21,30 @@ def centerAlignImage(img):
     min_y = 9999
     max_x = 0
     max_y = 0
-    
-    contours,_ = cv2.findContours(img.copy(), 2, 2) # not copying here will throw an error
+    # cv2.imwrite("here.png", img)
+    contours,_ = cv2.findContours(img.copy(), 1, 1) # not copying here will throw an error
+    # print(len(contours))
     for i in range(len(contours)):
         rect = cv2.minAreaRect(contours[i]) # basically you can feed this rect into your classifier
         (x,y),(w,h), a = rect # a - angle
 
         box = cv2.boxPoints(rect)
         box = np.int0(box) #turn into ints
-        min_x = min(min(box.T[0]), min_x)
-        min_y = min(min(box.T[1]), min_y)
+        min_x = max(min(min(box.T[0]), min_x), 0)
+        min_y = max(min(min(box.T[1]), min_y), 0)
         max_x = max(max(box.T[0]) + 2, max_x)
         max_y = max(max(box.T[1]) + 2, max_y)
     
+    # print(min_x, min_y, max_x, max_y)
+    
     # copy this part of layout 
     layout = img[min_y : max_y, min_x : max_x].copy()
+    
+    black_pixels = np.where((layout[:, :] == 0))
+
+    # set those pixels to white
+    layout[black_pixels] = 115
+    cv2.imwrite("Here.png", layout)
     
     # make the layout as black
     img[min_y : max_y, min_x : max_x] = np.zeros((max_y - min_y, max_x - min_x))
@@ -38,7 +55,7 @@ def centerAlignImage(img):
         center_x - int(layout_height/2) : center_x - int(layout_height/2) + (max_x-min_x)] = layout
     
     # return the new centered layouts
-    return img
+    return getZommedLayout(img)
 
 def chop_corners(img_OG):
     # create a copy
