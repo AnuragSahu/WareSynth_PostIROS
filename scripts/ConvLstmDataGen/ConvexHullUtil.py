@@ -1,13 +1,15 @@
 # point class with x, y as point
 class Point:
-    def __init__(self, x, y):
+    def __init__(self, x, y, wx, wy, wz):
         self.x = x
         self.y = y
+        self.wx = wx
+        self.wy = wy
+        self.wz = wz
  
 def Left_index(points):
-     
     '''
-    Finding the left most point
+    Finding the left most point 
     '''
     minn = 0
     for i in range(1,len(points)):
@@ -39,8 +41,10 @@ def orientation(p, q, r):
 def convexHull(points_my):
     points = []
     for point in points_my:
-        x,y = point 
-        points.append(Point(x, y))
+        x,y = point["ImgPoint"]
+        wx, wy, wz = point["WorPoint"]
+        # print(x,y, wx,wy,wz)
+        points.append(Point(x, y, wx, wy, wz))
 
     n = len(points)
      
@@ -95,8 +99,10 @@ def convexHull(points_my):
  
     # Print Result
     end_results = []
+
+    # print(hull)
     for each in hull:
-        end_results.append([points[each].x, points[each].y])
+        end_results.append([points[each].x, points[each].y, points[each].wx, points[each].wy, points[each].wz])
 
     return end_results
 

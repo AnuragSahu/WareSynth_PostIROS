@@ -3,7 +3,8 @@ from turtle import screensize
 import cv2
 import numpy as np
 from ConvexHullUtil import convexHull
-import matplotlib.pyplot as plt
+from FileNameManager import filePathManager
+# import matplotlib.pyplot as plt
 
 ###########################################################################
 # Define Configuration here
@@ -31,7 +32,9 @@ def populate_scene_info(path):
             ann = line.split(", ")
             # print(ann)
             x, y = float(ann[-2]), float(ann[-1][:-1])
-            scene_info[key].append([floor(x),floor(y)])
+            wx, wy, wz = float(ann[0]), float(ann[1]), float(ann[2])
+            scene_info[key].append({"ImgPoint" : [floor(x),floor(y)],
+                                    "WorPoint" : [wx, wy, wz]})
     return scene_info
 
 def getEndPoints(scene_info):
@@ -39,15 +42,17 @@ def getEndPoints(scene_info):
         scene_info[key] = convexHull(scene_info[key])
     return scene_info
 
-def make_layout(scene_info):
+def make_layout(path):
+    scene_info = populate_scene_info(path)
+    scene_info = getEndPoints(scene_info)
     layout = np.zeros((LAYOUT_SIZE_WID, LAYOUT_SIZE_LEN))
+    points_3d = []
     for key in scene_info:
-        contours = np.array(scene_info[key])
+        points_3d.append([ i[2:] for i in scene_info[key]])
+        contours = np.array([ i[:2] for i in scene_info[key]])
         cv2.fillPoly(layout, pts = [contours], color =(255,255,255))
-    return layout
+    return layout, points_3d
 
-path = "/home/anurag/Research/WareSynth_PostIROS/scripts/KeyPointsLayouts/000000.txt"
-scene_info = populate_scene_info(path)
-scene_info = getEndPoints(scene_info)
-layout = make_layout(scene_info)
-cv2.imwrite("test.png", layout)
+# path = filePathManager.datasetDumpDirectory + "Keypoints/000050.txt"
+# layout = make_layout(path)
+# cv2.imwrite("test.png", layout)
