@@ -12,6 +12,7 @@ class FilePathManager(object):
         # self.datasetDumpDirectory = "/home/anurag/Research/data/data_test/"
         self.datasetDumpDirectory = "/home/anurag/Research/Unity/data_8/"
         # self.datasetDumpDirectory = "/home/anurag/Downloads/data_new/"
+        self.datasetDumpDirectory = "/scratch/afinalData/"
         
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
