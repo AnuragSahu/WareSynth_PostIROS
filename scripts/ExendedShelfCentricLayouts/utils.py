@@ -23,7 +23,10 @@ def centerAlignImage(img):
     max_y = 0
     # cv2.imwrite("here.png", img)
     contours,_ = cv2.findContours(img.copy(), 1, 1) # not copying here will throw an error
-    # print(len(contours))
+    
+    # no layout is present in the image
+    if(len(contours) == 0):
+        return img
     for i in range(len(contours)):
         rect = cv2.minAreaRect(contours[i]) # basically you can feed this rect into your classifier
         (x,y),(w,h), a = rect # a - angle
@@ -44,7 +47,8 @@ def centerAlignImage(img):
 
     # set those pixels to white
     layout[black_pixels] = 115
-    cv2.imwrite("Here.png", layout)
+    # cv2.imwrite("Here.png", layout)
+    # print(min_x, max_x, min_y, max_y)
     
     # make the layout as black
     img[min_y : max_y, min_x : max_x] = np.zeros((max_y - min_y, max_x - min_x))

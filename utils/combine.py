@@ -2,7 +2,7 @@ import os
 import shutil
 
 # Get all the files in the parent directory
-parent_directory = "/home/anurag/Research/Unity/combine_data"
+parent_directory = "/home/anurag/Research/test"
 
 d = parent_directory
 dirs = [os.path.join(d, o) for o in os.listdir(d) if os.path.isdir(os.path.join(d,o))]
