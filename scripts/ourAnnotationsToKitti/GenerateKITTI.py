@@ -20,7 +20,8 @@ class GenerateKITTIAnnotations(object):
             for line in lines:
                 line = line.strip('\n')
                 elem  = line.split(", ")
-
+                if elem[0] == "Shelf_1":
+                    elem[0] = "Shelf"
                 self.dimensions_map[elem[0]] =  self.transform_point(list(map(float, elem[1:])), [0, 0, 0])
         # ####print(self.dimensions_map)
 
@@ -389,6 +390,7 @@ class GenerateKITTIAnnotations(object):
 
 
     def convert_to_KITTI(self, annotationsPath, dump_path):
+        # my_stack = 0
         for file in glob(join(annotationsPath, '*.txt')):
             print("For File : ", file)
 
@@ -463,6 +465,8 @@ class GenerateKITTIAnnotations(object):
                     shelfs_to_include.append(shelf_number)
                 else:
                     box_name, stack_group = labels[0].split(" stack ") 
+                    # stack_group = my_stack
+                    # my_stack += 1
                     object_dimensions = self.dimensions_map[box_name]
                     kitti_stuff = self.get_bbs(cutting_plane_limits, object_location, object_dimensions, object_scale, 
                                                 camera_rotation, camera_location, P, K, RT, is_shelf=False)

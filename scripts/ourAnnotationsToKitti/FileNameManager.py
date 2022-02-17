@@ -6,19 +6,20 @@ class FilePathManager(object):
     def __init__(self):
         
         # self.datasetDumpDirectory = "../../unity_retail/"
-        self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
+        # self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_subset_200/"
         # self.datasetDumpDirectory = "/home/anurag/Research/data/"
         # self.datasetDumpDirectory = "/home/avinash123/data_subset_200/"
+        self.datasetDumpDirectory = "/scratch/afinalData/"
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0
         self.debugImageNumber = 0
-        # self.kittiImagePath = self.datasetDumpDirectory + "KITTI/image_2/"
-        # self.kittiLabelPath = self.datasetDumpDirectory + "KITTI/label_2/"
-        # self.kittiCalibpath = self.datasetDumpDirectory + "KITTI/calib/"
-        # self.kittiDepthPath = self.datasetDumpDirectory + "KITTI/depth/"
-        # self.kittiVelodynePath = self.datasetDumpDirectory + "KITTI/velodyne/"
+        self.kittiImagePath = self.datasetDumpDirectory + "image_2/"
+        self.kittiLabelPath = self.datasetDumpDirectory + "label/"
+        self.kittiCalibpath = self.datasetDumpDirectory + "calib/"
+        self.kittiDepthPath = self.datasetDumpDirectory + "depth/"
+        self.kittiVelodynePath = self.datasetDumpDirectory + "velodyne/"
         self.anuragAnnotationsPath = self.datasetDumpDirectory
         self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "Annotations/"
         self.anuragRGBImagesPath = self.anuragAnnotationsPath + "img/"
@@ -52,27 +53,27 @@ class FilePathManager(object):
             os.makedirs(self.anuragEgoCentricLayouts)
         except FileExistsError:
             pass
-        # if(Constants.GENERATE_KITTI):
-        #     try:
-        #         os.makedirs(self.kittiImagePath)
-        #     except FileExistsError:
-        #         pass
-        #     try:
-        #         os.makedirs(self.kittiLabelPath)
-        #     except FileExistsError:
-        #         pass
-        #     try:
-        #         os.makedirs(self.kittiCalibpath)
-        #     except FileExistsError:
-        #         pass
-        #     try:
-        #         os.makedirs(self.kittiDepthPath)
-        #     except FileExistsError:
-        #         pass
-        #     try:
-        #         os.makedirs(self.kittiVelodynePath)
-        #     except FileExistsError:
-        #         pass
+        if(Constants.GENERATE_KITTI):
+            try:
+                os.makedirs(self.kittiImagePath)
+            except FileExistsError:
+                pass
+            try:
+                os.makedirs(self.kittiLabelPath)
+            except FileExistsError:
+                pass
+            try:
+                os.makedirs(self.kittiCalibpath)
+            except FileExistsError:
+                pass
+            try:
+                os.makedirs(self.kittiDepthPath)
+            except FileExistsError:
+                pass
+            try:
+                os.makedirs(self.kittiVelodynePath)
+            except FileExistsError:
+                pass
         
 
     def capturedScene(self):
