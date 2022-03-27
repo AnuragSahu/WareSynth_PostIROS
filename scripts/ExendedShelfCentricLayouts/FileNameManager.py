@@ -9,8 +9,8 @@ class FilePathManager(object):
         self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         # self.datasetDumpDirectory = "/home/avinash/Desktop/unity_retail/data/"
         # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_diverse/"
-        # self.datasetDumpDirectory = "/home/anurag/Research/data/data_test/"
-        # self.datasetDumpDirectory = "/home/anurag/Research/test/data_64/"
+        self.datasetDumpDirectory = "/home/anurag/Research/Unity/combine_data_10/data_1/"
+        # self.datasetDumpDirectory = "/home/anurag/Research/Unity/combine_data_3/data_1/"
         # self.datasetDumpDirectory = "/home/anurag/Downloads/data_new/"
         self.datasetDumpDirectory = "/scratch/afinalData/"
         

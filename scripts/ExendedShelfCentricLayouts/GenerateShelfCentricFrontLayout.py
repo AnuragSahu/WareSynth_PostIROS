@@ -25,6 +25,7 @@ class GenerateShelfCentricFrontLayout(object):
         # print(shelf_and_boxes)
         shelf_layouts = {}
         box_layouts = {}
+        interShelfDistance = 0
         #interShelfDistance = self.annotations["intershelfDistance"] #self.getInterShelfDistance(min_shelf_number)
         for shelf_number in range(min_shelf_number, max_shelf_number+1):
             if shelf_number not in shelf_and_boxes:
@@ -37,6 +38,7 @@ class GenerateShelfCentricFrontLayout(object):
                 dtype= np.uint8
             )
             layout_shelf = Image.fromarray(layout)
+            
             for shelf in shelfs:
                 interShelfDistance = float(shelf["object_dimensions"][1])#shelf["interShelfDistance"])
                 centerX, centerY, _ = shelf["object_ego_location"]
