@@ -8,7 +8,7 @@ from FileNameManager import filePathManager
 from utils import chop_corners, centerAlignImage
 # from preProcessing.FillRackGaps import fillRackGaps
 
-class GenerateEgoCentricTopLayout(object):
+class TopLayout(object):
     def __init__(self):
         self.length = Constants.LENGTH
         self.width = Constants.WIDTH
@@ -420,4 +420,4 @@ class GenerateEgoCentricTopLayout(object):
         file_path = dump_path +"top"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
-generateEgoCentricTopLayout = GenerateEgoCentricTopLayout()
+topLayout = TopLayout()

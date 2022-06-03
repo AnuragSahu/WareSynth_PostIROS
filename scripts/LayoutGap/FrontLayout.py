@@ -7,7 +7,7 @@ from pprint import pprint
 from PIL import Image, ImageDraw, ImageOps
 from utils import chop_corners, centerAlignImage
 
-class GenerateEgoCentricFrontLayout(object):
+class FrontLayout(object):
     def __init__(self):
         self.length = Constants.LENGTH
         self.width = Constants.WIDTH
@@ -206,4 +206,4 @@ class GenerateEgoCentricFrontLayout(object):
     
         # np.save(dump_path +"height"+ ID[:-4] + ".npy",shelfHeightDifference)
 
-generateEgoCentricFrontLayout = GenerateEgoCentricFrontLayout()
+frontLayout = FrontLayout()

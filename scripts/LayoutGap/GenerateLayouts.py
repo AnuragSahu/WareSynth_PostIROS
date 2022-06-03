@@ -8,9 +8,8 @@ import numpy as np
 # import mathutils
 import math
 from FileNameManager import filePathManager
-from GenerateEgoCentricTopLayout import generateEgoCentricTopLayout
-from GenerateEgoCentricFrontLayout import generateEgoCentricFrontLayout
-# from GenerateFrontalLayout import generateFrontalLayout
+from TopLayout import topLayout
+from FrontLayout import frontLayout
 import threading
 
 class GenerateLayouts(object):
@@ -309,8 +308,8 @@ class GenerateLayouts(object):
                     if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
                         shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # print(shelfs_and_boxes)
-            generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
+            topLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
+            frontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
             aa, bb, cc, dd, ee, ff)
             # return
 
