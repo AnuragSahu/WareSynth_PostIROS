@@ -1,7 +1,7 @@
 import Constants
 import numpy as np
 import cv2
-import mathutils
+# import mathutils
 from PIL import Image, ImageDraw
 import Constants
 from FileNameManager import filePathManager
@@ -33,10 +33,7 @@ class GenerateEgoCentricTopLayout(object):
 
     def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
-        R_bcam2cv = mathutils.Matrix(
-            ((1, 0,  0),
-            (0, 1, 0),
-            (0, 0, 1)))
+        R_bcam2cv = [[1, 0,  0], [0, 1, 0], [0, 0, 1]]
         R_bcam2cv = np.array(R_bcam2cv)
         # Transpose since the rotation is object rotation, 
         # and we want coordinate rotation

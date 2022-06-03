@@ -5,7 +5,7 @@ from glob import glob
 from pprint import pprint
 import Constants
 import numpy as np
-import mathutils
+# import mathutils
 import math
 from FileNameManager import filePathManager
 from GenerateShelfCentricTopLayout import generateShelfCentricTopLayout
@@ -43,10 +43,7 @@ class GenerateLayouts(object):
 
     def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
-        R_bcam2cv = mathutils.Matrix(
-            ((1, 0,  0),
-            (0, 1, 0),
-            (0, 0, 1)))
+        R_bcam2cv =[[1, 0,  0], [0, 1, 0], [0, 0, 1]]
         R_bcam2cv = np.array(R_bcam2cv)
         # Transpose since the rotation is object rotation, 
         # and we want coordinate rotation

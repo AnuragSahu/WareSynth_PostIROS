@@ -8,7 +8,7 @@ from FileNameManager import filePathManager
 from utils import chop_corners, centerAlignImage
 # from preProcessing.FillRackGaps import fillRackGaps
 
-class GenerateShelfCentricTopLayout(object):
+class GenerateEgoCentricTopLayout(object):
     def __init__(self):
         self.length = Constants.LENGTH
         self.width = Constants.WIDTH
@@ -33,7 +33,7 @@ class GenerateShelfCentricTopLayout(object):
 
     def get_3x4_RT(self, loc, rot):
         # bcam stands for blender camera
-        R_bcam2cv =[[1, 0,  0], [0, 1, 0], [0, 0, 1]]
+        R_bcam2cv = [[1, 0,  0], [0, 1, 0], [0, 0, 1]]
         R_bcam2cv = np.array(R_bcam2cv)
         # Transpose since the rotation is object rotation, 
         # and we want coordinate rotation
@@ -392,7 +392,7 @@ class GenerateShelfCentricTopLayout(object):
                     for j in range(len(pixels[i])):
                         if(pixelsb[i][j] != 255):
                             pixelsb[i][j] = pixels[i][j]
-                pixels = np.array(pixelsb, dtype = np.uint8)
+                pixels = np.array(pixelsb, dtype = np.uint8) 
 
                 ################################################################
                 # Uncomment this section for chopping off the boxes outside rack
@@ -420,4 +420,4 @@ class GenerateShelfCentricTopLayout(object):
         file_path = dump_path +"top"+ ID[:-4] + ".npy"
         np.save(file_path, final_layout_racks)
 
-generateShelfCentricTopLayout = GenerateShelfCentricTopLayout()
+generateEgoCentricTopLayout = GenerateEgoCentricTopLayout()
