@@ -149,9 +149,11 @@ class MERGE_LAYOUTS:
         return merged_top, merged_front
 
 class MAKE_3D:
-    def __init__(self, top_layouts, front_layouts):
+    def __init__(self, top_layouts, front_layouts, box_front_2d, box_top_2d):
         self.front_layouts = front_layouts
         self.top_layouts = top_layouts
+        self.prev_box_front_2d = box_front_2d
+        self.prev_box_top_2d = box_top_2d
 
     def getBoundingBoxes(self, img):
         img = img.astype(np.uint8)
@@ -168,15 +170,17 @@ class MAKE_3D:
 
     def calculate3DBB(self, topBBox, frontBBox):
         Boxes = []
+        j = 0
+        iter = max(len(topBBox), len(frontBBox))
 
-        for i in range(len(topBBox)):
-            # length
+        for i in range(iter):    
             length = min(topBBox[i][2], frontBBox[i][2])
             # width
             width = topBBox[i][3]
             # height
             height = frontBBox[i][3]
             # x is towards right
+            # Can be averaged?
             x = int(length/2) + max(topBBox[i][0], frontBBox[i][0])
             # y is depth
             y = int(width/2) + topBBox[i][1]
@@ -194,9 +198,54 @@ class MAKE_3D:
             id += 1
             cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
             cv2.putText(im, str(id),(x+1,y+h),0,0.5,(0,255,0))
-
         plt.imshow(im)
         plt.show()
+        
+    def optimPred(self, curr_front_2d_bb, curr_top_2d_bb, prev_front_2d, prev_top_2d):
+        front_2d_bb, top_2d_bb = [], []
+        lf = len(curr_front_2d_bb)
+        lt = len(curr_top_2d_bb)
+        i = 0
+        j = 0
+        while i < lf and j < lt:
+            if abs(curr_front_2d_bb[i][0] - curr_top_2d_bb[j][0]) < 5:
+                front_2d_bb.append(curr_front_2d_bb[i])
+                top_2d_bb.append(curr_top_2d_bb[j])
+                i+=1
+                j+=1
+            elif i < lf - 1 and j < lt - 1:
+                if curr_front_2d_bb[i][0] < curr_top_2d_bb[j][0]:
+                    if abs(prev_front_2d[i][0] - curr_front_2d_bb[i][0]) < 10 and abs(prev_front_2d[i][2] - curr_front_2d_bb[i][2]) < 5:
+                        front_2d_bb.append(curr_front_2d_bb[i])
+                        new = curr_front_2d_bb[i]
+                        new[3] = prev_top_2d[i][3]  
+                        top_2d_bb.append(new)
+                        i+=1
+                    elif abs(prev_front_2d[i+1][0] - curr_front_2d_bb[i][0]) < 10 and abs(prev_front_2d[i+1][2] - curr_front_2d_bb[i][2]) < 5:
+                        front_2d_bb.append(curr_front_2d_bb[i])
+                        new = curr_front_2d_bb[i]
+                        new[3] = prev_top_2d[i+1][3]  
+                        top_2d_bb.append(new)
+                        i+=1
+                    else:
+                        i+=1
+                else:
+                    if abs(prev_top_2d[j][0] - curr_top_2d_bb[j][0]) < 10 and abs(prev_top_2d[j][2] - curr_top_2d_bb[j][2]) < 5:
+                        top_2d_bb.append(curr_top_2d_bb[j])
+                        new = curr_top_2d_bb[j]
+                        new[3] = prev_front_2d[j][3]  
+                        front_2d_bb.append(new)
+                        j+=1
+                    elif abs(prev_top_2d[j+1][0] - curr_top_2d_bb[j][0]) < 10 and abs(prev_top_2d[j+1][2] - curr_top_2d_bb[j][2]) < 5:
+                        top_2d_bb.append(curr_top_2d_bb[j])
+                        new = curr_top_2d_bb[j]
+                        new[3] = prev_front_2d[j+1][3]  
+                        front_2d_bb.append(new)
+                        j+=1
+                    else:
+                        j+=1
+
+        return front_2d_bb, top_2d_bb
 
     def make_3D_BB(self):
 
@@ -213,10 +262,10 @@ class MAKE_3D:
         # plt.show()        
 
         # Get the 2D BB for boxes top view
-        box_top_2d_bb = self.getBoundingBoxes(boxThresh_top)
+        curr_box_top_2d_bb = self.getBoundingBoxes(boxThresh_top)
         
         # Get the 2D BB for boxes front view
-        box_front_2d_bb = self.getBoundingBoxes(boxThresh_front)
+        curr_box_front_2d_bb = self.getBoundingBoxes(boxThresh_front)
 
         # Get the 2D BB for racks top view
         shelf_top_2d_bb = self.getBoundingBoxes(shelfThresh_top)
@@ -224,12 +273,17 @@ class MAKE_3D:
         # Get the 2D BB for racks front view
         shelf_front_2d_bb = self.getBoundingBoxes(shelfThresh_front)
 
-        # print("Front : ",box_front_2d_bb)
-        # print("Top : ",box_top_2d_bb)
-
-        self.plot_BB_Lay(self.top_layouts, box_top_2d_bb)
-        self.plot_BB_Lay(self.front_layouts, box_front_2d_bb)
-
+        # print("Front : ", curr_box_front_2d_bb, len(curr_box_front_2d_bb))
+        # print("Top : ", curr_box_top_2d_bb, "\n")
+        # Add here
+        if self.prev_box_front_2d != None and self.prev_box_top_2d != None:
+            box_front_2d_bb, box_top_2d_bb = self.optimPred(curr_box_front_2d_bb, curr_box_top_2d_bb, self.prev_box_front_2d, self.prev_box_top_2d)
+        else:
+            box_front_2d_bb, box_top_2d_bb = curr_box_front_2d_bb, curr_box_top_2d_bb
+        # Uncomment to plot
+        # self.plot_BB_Lay(self.top_layouts, box_top_2d_bb)
+        # self.plot_BB_Lay(self.front_layouts, box_front_2d_bb)
+        # print("\n", box_top_2d_bb, box_front_2d_bb)
         # Get the 3D BB for boxes
         boxes_3d_BB = self.calculate3DBB(box_top_2d_bb, box_front_2d_bb)
 
@@ -239,4 +293,4 @@ class MAKE_3D:
         # print(boxes_3d_BB)
 
         # return these boxes and racks 3D BB
-        return boxes_3d_BB, shelves_3d_BB
+        return boxes_3d_BB, shelves_3d_BB, box_front_2d_bb, box_top_2d_bb

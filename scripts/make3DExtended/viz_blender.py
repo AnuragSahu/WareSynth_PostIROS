@@ -15,18 +15,18 @@ class CREATE_VIZ_BLENDER:
                 self.BB_3D_Boxes.append([x, y, z,length, width, height])
             else:
                 self.BB_3D_Shelves.append([x, y, z,length, width, height])     
-
+    
     
     def make_in_blender(self):
         # For all the boxes
         for box in self.BB_3D_Boxes:
             x,y,z,length, width, height = box
-            x = int(x)
-            y = int(y)
-            z = int(z)
-            length = int(length)
-            width = int(width)
-            height = int(height)
+            x = float(x)
+            y = float(y)
+            z = float(z)
+            length = float(length)
+            width = float(width)
+            height = float(height)
 
             x = x - 269
             y = y - 256
@@ -38,12 +38,12 @@ class CREATE_VIZ_BLENDER:
             bpy.ops.mesh.primitive_cube_add(location=location,scale=scale)
         for shelf in self.BB_3D_Shelves:
             x,y,z,length, width, height = shelf
-            x = int(x)
-            y = int(y)
-            z = int(z)
-            length = int(length)
-            width = int(width)
-            height = int(height)
+            x = float(x)
+            y = float(y)
+            z = float(z)
+            length = float(length)
+            width = float(width)
+            height = float(height)
             
             x = x - 269
             y = y - 256
@@ -55,5 +55,7 @@ class CREATE_VIZ_BLENDER:
             bpy.ops.mesh.primitive_cube_add(location = location, scale = scale)
 
 viz = CREATE_VIZ_BLENDER()
-viz.read_annotations("/Users/vampire/RESEARCH/ann.txt")
+viz.read_annotations("/home/pranjali/Documents/Post_RackLay/WareSynth_PostIROS/scripts/make3DExtended/ann_bottom_ann.txt")
+viz.read_annotations("/home/pranjali/Documents/Post_RackLay/WareSynth_PostIROS/scripts/make3DExtended/ann_middle_ann.txt")
+viz.read_annotations("/home/pranjali/Documents/Post_RackLay/WareSynth_PostIROS/scripts/make3DExtended/ann_top_ann.txt")
 viz.make_in_blender()

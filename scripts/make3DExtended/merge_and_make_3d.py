@@ -3,10 +3,21 @@ import os
 import numpy as np
 from utils import MERGE_LAYOUTS, MAKE_3D
 
+FRONT_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/front/"
+TOP_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/top/"
+folder = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/top/"
+frames_per_seq = 49
+num_rows = 1
+num_cols = 1
 
-FRONT_VIEW_FOLDER = "/Users/vampire/RESEARCH/data/debugOutputs/front"
-TOP_VIEW_FOLDER = "/Users/vampire/RESEARCH/data/debugOutputs/top"
-RGB_IMAGE_FOLDER = "./3D_Reconstruction/img/"
+corridor_col = 800
+corridor_row = 300
+
+_, _, files = next(os.walk(folder))
+file_count = int(len(files) / 3)
+print(file_count)
+curr_row = 0
+curr_col = 0
 
 def write_in_file(path, boxes, shelves):
     f = open(path, "w")
@@ -31,14 +42,61 @@ def write_in_file(path, boxes, shelves):
         height = str(height)
         f.write("Shelf, " + x + ", " + y + ", " + z + ", " + length + ", " + width + ", " + height + "\n")
 
+Bottom_box_front_2d_BB = None
+Bottom_box_top_2d_BB = None
+Mid_box_front_2d_BB = None
+Mid_box_top_2d_BB = None
+Top_box_front_2d_BB = None
+Top_box_top_2d_BB = None
 
-merged_top_view, merged_front_view = MERGE_LAYOUTS(FRONT_VIEW_FOLDER,
-                                                    TOP_VIEW_FOLDER,
-                                                    RGB_IMAGE_FOLDER).merge_layouts();
+for i in range(file_count):
+    if i%frames_per_seq == 0:
+        if curr_col < num_cols:
+            curr_col += 1
+            if i ==0 :
+                curr_row += 1
+        else :
+            curr_col = 1
+            curr_row += 1
+    print(f"Generating annotation for {i}")
 
-# print(merged_front_view.shape)
+    # Bottom
+    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_0.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_0.png", 0)
+    BB_3D_Boxes_bottom, BB_3D_Shelves_bottom, Bottom_box_front_2d_BB, Bottom_box_top_2d_BB = MAKE_3D(top_view, front_view, Bottom_box_front_2d_BB, Bottom_box_top_2d_BB).make_3D_BB() 
+    for ii in range(len(BB_3D_Boxes_bottom)):
+        BB_3D_Boxes_bottom[ii][0] -= (curr_col - 1)*corridor_col
+        BB_3D_Boxes_bottom[ii][1] -= (curr_row - 1)*corridor_row
+    for ii in range(len(BB_3D_Shelves_bottom)): 
+        BB_3D_Shelves_bottom[ii][0] -= (curr_col - 1)*corridor_col 
+        BB_3D_Shelves_bottom[ii][1] -= (curr_row - 1)*corridor_row
 
-BB_3D_Boxes, BB_3D_Shelves = MAKE_3D(merged_top_view, merged_front_view).make_3D_BB();
-write_in_file("./ann.txt", BB_3D_Boxes, BB_3D_Shelves)
+    # Middle
+    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_1.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_1.png", 0)
+    BB_3D_Boxes_middle, BB_3D_Shelves_middle, Mid_box_front_2d_BB, Mid_box_top_2d_BB = MAKE_3D(top_view, front_view, Mid_box_front_2d_BB, Mid_box_top_2d_BB).make_3D_BB()
+    for ii in range(len(BB_3D_Boxes_middle)):
+        BB_3D_Boxes_middle[ii][2] -= BB_3D_Shelves_bottom[-1][-1]
+        BB_3D_Boxes_middle[ii][0] -= (curr_col - 1)*corridor_col
+        BB_3D_Boxes_middle[ii][1] -= (curr_row - 1)*corridor_row
+    for ii in range(len(BB_3D_Shelves_middle)):
+        BB_3D_Shelves_middle[ii][2] -= BB_3D_Shelves_bottom[-1][-1]  
+        BB_3D_Shelves_middle[ii][0] -= (curr_col - 1)*corridor_col 
+        BB_3D_Shelves_middle[ii][1] -= (curr_row - 1)*corridor_row  
 
-# CREATE_VIZ_BLENDER(BB_3D_Boxes, BB_3D_Shelves).make_in_blender();
+    # Top
+    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_2.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_2.png", 0)
+    BB_3D_Boxes_top, BB_3D_Shelves_top, Top_box_front_2d_BB, Top_box_top_2d_BB = MAKE_3D(top_view, front_view, Top_box_front_2d_BB, Top_box_top_2d_BB).make_3D_BB()
+    for ii in range(len(BB_3D_Boxes_top)):
+        BB_3D_Boxes_top[ii][2] -= (BB_3D_Shelves_bottom[-1][-1] + BB_3D_Shelves_middle[-1][-1])
+        BB_3D_Boxes_top[ii][0] -= (curr_col - 1)*corridor_col
+        BB_3D_Boxes_top[ii][1] -= (curr_row - 1)*corridor_row
+    for ii in range(len(BB_3D_Shelves_top)):
+        BB_3D_Shelves_top[ii][2] -= (BB_3D_Shelves_bottom[-1][-1] + BB_3D_Shelves_middle[-1][-1])  
+        BB_3D_Shelves_top[ii][0] -= (curr_col - 1)*corridor_col 
+        BB_3D_Shelves_top[ii][1] -= (curr_row - 1)*corridor_row  
+
+    write_in_file(f"./bottom_ann/ann_{curr_row}_{curr_col}_{str(i).zfill(6)}_bottom.txt", BB_3D_Boxes_bottom, BB_3D_Shelves_bottom)
+    write_in_file(f"./middle_ann/ann_{curr_row}_{curr_col}_{str(i).zfill(6)}_middle.txt", BB_3D_Boxes_middle, BB_3D_Shelves_middle)
+    write_in_file(f"./top_ann/ann_{curr_row}_{curr_col}_{str(i).zfill(6)}_top.txt", BB_3D_Boxes_top, BB_3D_Shelves_top)
