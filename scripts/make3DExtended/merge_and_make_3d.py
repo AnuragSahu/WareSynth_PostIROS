@@ -3,18 +3,18 @@ import os
 import numpy as np
 from utils import MERGE_LAYOUTS, MAKE_3D
 
-FRONT_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/front/"
-TOP_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/top/"
-folder = "/home/pranjali/Documents/Post_RackLay/vRacklay_spaced/Results_val_72/Results/top/"
-frames_per_seq = 49
-num_rows = 1
-num_cols = 1
+FRONT_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/data_new/debugOutputs/front"
+TOP_VIEW_FOLDER = "/home/pranjali/Documents/Post_RackLay/data_new/debugOutputs/top"
+folder = "/home/pranjali/Documents/Post_RackLay/data_new/debugOutputs/"
+frames_per_seq = 70
+num_rows = 2
+num_cols = 2
 
 corridor_col = 800
 corridor_row = 300
 
 _, _, files = next(os.walk(folder))
-file_count = int(len(files) / 3)
+file_count = int(len(files) / 6)
 print(file_count)
 curr_row = 0
 curr_col = 0
@@ -61,8 +61,8 @@ for i in range(file_count):
     print(f"Generating annotation for {i}")
 
     # Bottom
-    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_0.png", 0)
-    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_0.png", 0)
+    top_view = cv2.imread(TOP_VIEW_FOLDER +  str(i).zfill(6) + "_0.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER +  str(i).zfill(6) + "_0.png", 0)
     BB_3D_Boxes_bottom, BB_3D_Shelves_bottom, Bottom_box_front_2d_BB, Bottom_box_top_2d_BB = MAKE_3D(top_view, front_view, Bottom_box_front_2d_BB, Bottom_box_top_2d_BB).make_3D_BB() 
     for ii in range(len(BB_3D_Boxes_bottom)):
         BB_3D_Boxes_bottom[ii][0] -= (curr_col - 1)*corridor_col
@@ -72,8 +72,8 @@ for i in range(file_count):
         BB_3D_Shelves_bottom[ii][1] -= (curr_row - 1)*corridor_row
 
     # Middle
-    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_1.png", 0)
-    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_1.png", 0)
+    top_view = cv2.imread(TOP_VIEW_FOLDER +  str(i).zfill(6) + "_1.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER +  str(i).zfill(6) + "_1.png", 0)
     BB_3D_Boxes_middle, BB_3D_Shelves_middle, Mid_box_front_2d_BB, Mid_box_top_2d_BB = MAKE_3D(top_view, front_view, Mid_box_front_2d_BB, Mid_box_top_2d_BB).make_3D_BB()
     for ii in range(len(BB_3D_Boxes_middle)):
         BB_3D_Boxes_middle[ii][2] -= BB_3D_Shelves_bottom[-1][-1]
@@ -85,8 +85,8 @@ for i in range(file_count):
         BB_3D_Shelves_middle[ii][1] -= (curr_row - 1)*corridor_row  
 
     # Top
-    top_view = cv2.imread(TOP_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_2.png", 0)
-    front_view = cv2.imread(FRONT_VIEW_FOLDER + "8_" + str(i).zfill(6) + "rackno_2.png", 0)
+    top_view = cv2.imread(TOP_VIEW_FOLDER +  str(i).zfill(6) + "_2.png", 0)
+    front_view = cv2.imread(FRONT_VIEW_FOLDER +  str(i).zfill(6) + "_2.png", 0)
     BB_3D_Boxes_top, BB_3D_Shelves_top, Top_box_front_2d_BB, Top_box_top_2d_BB = MAKE_3D(top_view, front_view, Top_box_front_2d_BB, Top_box_top_2d_BB).make_3D_BB()
     for ii in range(len(BB_3D_Boxes_top)):
         BB_3D_Boxes_top[ii][2] -= (BB_3D_Shelves_bottom[-1][-1] + BB_3D_Shelves_middle[-1][-1])
