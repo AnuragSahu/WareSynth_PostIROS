@@ -13,6 +13,7 @@ from GenerateEgoCentricFrontLayout import generateEgoCentricFrontLayout
 # from GenerateFrontalLayout import generateFrontalLayout
 import threading
 
+
 class GenerateLayouts(object):
     def __init__(self):
         self.annotations = {}
@@ -23,21 +24,23 @@ class GenerateLayouts(object):
             lines = f.readlines()
             for line in lines:
                 line = line.strip('\n')
-                elem  = line.split(", ")
+                elem = line.split(", ")
 
-                self.dimensions_map[elem[0]] =  list(map(float, elem[1:]))
+                self.dimensions_map[elem[0]] = list(map(float, elem[1:]))
         # ##print(self.dimensions_map)
 
-    def eul2rot(self, theta) :
+    def eul2rot(self, theta):
         theta = [float(theta[0]), float(theta[1]), float(theta[2])]
-        R = np.array([[np.cos(theta[1])*np.cos(theta[2]),np.sin(theta[0])*np.sin(theta[1])*np.cos(theta[2]) - np.sin(theta[2])*np.cos(theta[0]), np.sin(theta[1])*np.cos(theta[0])*np.cos(theta[2]) + np.sin(theta[0])*np.sin(theta[2])],
-                      [np.sin(theta[2])*np.cos(theta[1]),np.sin(theta[0])*np.sin(theta[1])*np.sin(theta[2]) + np.cos(theta[0])*np.cos(theta[2]), np.sin(theta[1])*np.sin(theta[2])*np.cos(theta[0]) - np.sin(theta[0])*np.cos(theta[2])],
-                      [-np.sin(theta[1]),np.sin(theta[0])*np.cos(theta[1]),np.cos(theta[0])*np.cos(theta[1])]])
+        R = np.array([[np.cos(theta[1])*np.cos(theta[2]), np.sin(theta[0])*np.sin(theta[1])*np.cos(theta[2]) - np.sin(theta[2])*np.cos(theta[0]), np.sin(theta[1])*np.cos(theta[0])*np.cos(theta[2]) + np.sin(theta[0])*np.sin(theta[2])],
+                      [np.sin(theta[2])*np.cos(theta[1]), np.sin(theta[0])*np.sin(theta[1])*np.sin(theta[2]) + np.cos(theta[0])
+                       * np.cos(theta[2]), np.sin(theta[1])*np.sin(theta[2])*np.cos(theta[0]) - np.sin(theta[0])*np.cos(theta[2])],
+                      [-np.sin(theta[1]), np.sin(theta[0])*np.cos(theta[1]), np.cos(theta[0])*np.cos(theta[1])]])
 
         pSet = 6
-        R = np.array([[round(R[0,0],pSet), round(R[0,1], pSet), round(R[0,2],pSet)],
-                      [round(R[1,0],pSet), round(R[1,1], pSet), round(R[1,2],pSet)],
-                      [round(R[2,0],pSet), round(R[2,1], pSet), round(R[2,2],pSet)]])
+        R = np.array([[round(R[0, 0], pSet), round(R[0, 1], pSet), round(R[0, 2], pSet)],
+                      [round(R[1, 0], pSet), round(
+                          R[1, 1], pSet), round(R[1, 2], pSet)],
+                      [round(R[2, 0], pSet), round(R[2, 1], pSet), round(R[2, 2], pSet)]])
 
         return R
 
@@ -45,7 +48,7 @@ class GenerateLayouts(object):
         # bcam stands for blender camera
         R_bcam2cv = [[1, 0,  0], [0, 1, 0], [0, 0, 1]]
         R_bcam2cv = np.array(R_bcam2cv)
-        # Transpose since the rotation is object rotation, 
+        # Transpose since the rotation is object rotation,
         # and we want coordinate rotation
         # R_world2bcam = cam.rotation_euler.to_matrix().transposed()
         # T_world2bcam = -1*R_world2bcam * location
@@ -53,56 +56,56 @@ class GenerateLayouts(object):
         # Use matrix_world instead to account for all constraints
         R_world2bcam = self.eul2rot(rot)
         R_world2bcam = R_world2bcam.T
-        
+
         location = np.array([float(loc[0]), float(loc[1]), float(loc[2])])
-        ###print(loc)
-        ###print(rot)
+        # print(loc)
+        # print(rot)
         #rotation = mathutils.Euler((float(rot[0]), float(rot[1]), float(rot[2])))
         #R_world2bcam = rotation.to_matrix().transposed()
         #R_world2bcam = np.array(R_world2bcam)
         ###print("R World Matrix : ", np.array(R_world2bcam))
         # Convert camera location to translation vector used in coordinate changes
 
-        ###print(R_world2bcam)
-        ###print(location)
+        # print(R_world2bcam)
+        # print(location)
         T_world2bcam = -1*R_world2bcam @ location
 
         ###print("T_world2bcam : ",T_world2bcam)
-        # Use location from matrix_world to account for constraints:     
+        # Use location from matrix_world to account for constraints:
         #T_world2bcam = -1*R_world2bcam * location
 
         # Build the coordinate transform matrix from world to computer vision camera
         R_world2cv = R_bcam2cv @ R_world2bcam
         T_world2cv = R_bcam2cv @ T_world2bcam
         # put into 3x4 matrix
-        RT = np.array([[R_world2cv[0][0], R_world2cv[0][1], R_world2cv[0][2] , T_world2cv[0]],
-                       [R_world2cv[1][0], R_world2cv[1][1], R_world2cv[1][2] , T_world2cv[1]],
-                       [R_world2cv[2][0], R_world2cv[2][1], R_world2cv[2][2] , T_world2cv[2]]
-        ])
+        RT = np.array([[R_world2cv[0][0], R_world2cv[0][1], R_world2cv[0][2], T_world2cv[0]],
+                       [R_world2cv[1][0], R_world2cv[1][1],
+                           R_world2cv[1][2], T_world2cv[1]],
+                       [R_world2cv[2][0], R_world2cv[2][1],
+                           R_world2cv[2][2], T_world2cv[2]]
+                       ])
         return np.array(RT)
 
     def get_percentage_visible(self, cutting_planes_visible, object_dimensions, object_location, object_type):
         # print("Before :", object_type, object_dimensions)
         # bounds_vis[1] = minX[1];
-		# bounds_vis[2] = maxX[1];
-		# bounds_vis[3] = minY[1];
-		# bounds_vis[4] = maxY[1];
-		# bounds_vis[5] = minZ[1];
-		# bounds_vis[6] = maxZ[1];
-		
-		# bounds_vis[7] = minX[0];
-		# bounds_vis[8] = maxX[0];
-		# bounds_vis[9] = minY[0];
-		# bounds_vis[10] = maxY[0];
-		# bounds_vis[11] = minZ[0];
-		# bounds_vis[12] = maxZ[0];
-		
-		# //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
+        # bounds_vis[2] = maxX[1];
+        # bounds_vis[3] = minY[1];
+        # bounds_vis[4] = maxY[1];
+        # bounds_vis[5] = minZ[1];
+        # bounds_vis[6] = maxZ[1];
+
+        # bounds_vis[7] = minX[0];
+        # bounds_vis[8] = maxX[0];
+        # bounds_vis[9] = minY[0];
+        # bounds_vis[10] = maxY[0];
+        # bounds_vis[11] = minZ[0];
+        # bounds_vis[12] = maxZ[0];
+
+        # //// Debug.Log(go.name +" "+ z +" X PERCENTAGE IS "+ (maxX[1] - minX[1])/(maxX[0] - minX[0]) +"    Y PERCENTAGE IS"+ (maxY[1] - minY[1])/(maxY[0] - minY[0]));
         # do right and left things here
 
-        
         bounds_vis = cutting_planes_visible[0]
-        
 
         isVis, minX, maxX, minY, maxY, minZ, maxZ, MINx, MAXx, MINy, MAXy, MINz, MAXz = bounds_vis
 
@@ -112,27 +115,27 @@ class GenerateLayouts(object):
             [minZ, maxZ, MINz, MAXz]
         ]
 
-        for i in range(2): #, <- we don't adjust z, cut x and y only
+        for i in range(2):  # , <- we don't adjust z, cut x and y only
             limits = lims[i]
             if isVis == 0:
                 object_dimensions[i] = 0
             elif limits[1] == limits[3] and limits[0] == limits[2]:
-                pass 
+                pass
             else:
                 # print(i, object_type, (limits[1] - limits[0])/(limits[3] - limits[2]))
                 # object_dimensions[i] *= (limits[1] - limits[0])/(limits[3] - limits[2])
                 object_dimensions[i] = limits[1] - limits[0]
-                if i==1:
+                if i == 1:
                     object_location[i] = limits[0]
                 else:
                     object_location[i] = (limits[0] + limits[1]) / 2
-                
+
         # print("After :", object_type, object_dimensions)
         return object_dimensions, object_location, isVis
-        
+
     def get_locations(self, obj_loc, cam_loc, cam_rot):
         RT = self.get_3x4_RT(cam_loc, cam_rot)
-        extra_vec = np.array([0,0,0,1])
+        extra_vec = np.array([0, 0, 0, 1])
         RT = np.vstack((RT, extra_vec))
 
         locations = np.array([
@@ -146,7 +149,7 @@ class GenerateLayouts(object):
         ###print("loc : ",locations)
         locations = RT @ locations
         locations /= locations[3]
-        ###print(obj_loc,cam_loc)
+        # print(obj_loc,cam_loc)
         locations = locations[:3]
         #locations = [locations[2],locations[1]+float(obj_dim[2])/2,locations[0]]
         #locations = [locations[2],locations[1],locations[0]]
@@ -161,13 +164,14 @@ class GenerateLayouts(object):
 
         c = 0
         for file in glob(join(annotationsPath, '*.txt')):
-            files_split[c%self.num_threads].append(file)
+            files_split[c % self.num_threads].append(file)
             c += 1
 
         threads = []
 
         for i in range(self.num_threads):
-            t = threading.Thread(target=self.generate_layout_from_file, args=(files_split[i], dump_path, aa, bb, cc, dd, ee, ff))
+            t = threading.Thread(target=self.generate_layout_from_file, args=(
+                files_split[i], dump_path, aa, bb, cc, dd, ee, ff))
             threads.append(t)
             t.start()
 
@@ -182,7 +186,7 @@ class GenerateLayouts(object):
             ID = file.split("/")[-1]
             # if ID != "000001.txt":
             #     continue
-            print("For file",ID)
+            print("For file", ID)
             f = open(file, "r")
             annotationLines = f.readlines()
             # rack_in_focus = annotationLines[0].strip('\n')
@@ -197,26 +201,24 @@ class GenerateLayouts(object):
                 object_type = labels[0].split(" stack ")[0]
 
                 cutting_plane_limits = {}
-                # cplns = []    
+                # cplns = []
                 key_cp = 0
                 for i in range(18, 18+3*14, 14):
                     one_plane = labels[i:i+14]
-                    ###print(one_plane)
-                    #can parse here
-                    cutting_plane_limits[key_cp] = list(map(float, one_plane[1:]))
+                    # print(one_plane)
+                    # can parse here
+                    cutting_plane_limits[key_cp] = list(
+                        map(float, one_plane[1:]))
                     key_cp += 1
-                
-                object_location = list(map(float,labels[3:6]))
+
+                object_location = list(map(float, labels[3:6]))
                 # object_orientation = labels[6:9]
-                object_scale = list(map(float,labels[9:12]))
-                camera_location = list(map(float,labels[12:15]))
+                object_scale = list(map(float, labels[9:12]))
+                camera_location = list(map(float, labels[12:15]))
                 camera_rotation = labels[15:18]
                 camera_rotation = [float(i)*np.pi for i in camera_rotation]
 
                 interShelfDistance = self.dimensions_map["Shelf_1"][1]
-                
-                
-                
 
                 if labels[0][0] == 'S':
                     object_type = "Shelf"
@@ -224,8 +226,9 @@ class GenerateLayouts(object):
                 else:
                     object_type = "Box"
                     # object_dimensions = self.dimensions_map[labels[0].split(" stack ")[0]]
-                    object_dimensions_old = self.dimensions_map[labels[0].split(" stack ")[0]]
-                    ##print(labels[0])
+                    object_dimensions_old = self.dimensions_map[labels[0].split(" stack ")[
+                        0]]
+                    # print(labels[0])
                     stack_num = labels[0].split(" stack ")[1]
                     # ##print(object_dimensions_old)
                     # ##print(object_scale)
@@ -233,14 +236,14 @@ class GenerateLayouts(object):
                         stack_list[stack_num] = object_scale
                     else:
                         object_scale = stack_list[stack_num]
-                
+
                 object_dimensions = [100, 100, 100]
-                object_dimensions[0] = object_dimensions_old[aa]*object_scale[ff]
-                object_dimensions[1] = object_dimensions_old[bb]*object_scale[ee]
-                object_dimensions[2] = object_dimensions_old[cc]*object_scale[dd]
-
-
-                
+                object_dimensions[0] = object_dimensions_old[aa] * \
+                    object_scale[ff]
+                object_dimensions[1] = object_dimensions_old[bb] * \
+                    object_scale[ee]
+                object_dimensions[2] = object_dimensions_old[cc] * \
+                    object_scale[dd]
 
                 # if labels[0] == "Shelf_0":
                 #     #print(object_dimensions[1])
@@ -259,9 +262,10 @@ class GenerateLayouts(object):
                 object_location = [float(i) for i in object_location]
 
                 # print(labels[0:3], object_dimensions, object_location)
-                object_dimensions, object_location, isVis = self.get_percentage_visible(cutting_plane_limits, object_dimensions, object_location, labels[0])
+                object_dimensions, object_location, isVis = self.get_percentage_visible(
+                    cutting_plane_limits, object_dimensions, object_location, labels[0])
                 object_location[1] += object_dimensions[1]/2
-                
+
                 if isVis == 0:
                     continue
                 else:
@@ -269,55 +273,60 @@ class GenerateLayouts(object):
                     pass
                 # ##print("Object Location : ",object_location)
                 # ##print("Camera Location : ",camera_location)
-                objectEgoCentricLocation = self.get_locations(object_location, 
+                objectEgoCentricLocation = self.get_locations(object_location,
                                                               camera_location, camera_rotation)
 
-                # ##print("objectEgoCentricLocation : ", objectEgoCentricLocation)                                                                    
+                # ##print("objectEgoCentricLocation : ", objectEgoCentricLocation)
 
-                objectEgoCentricRotation_y = 0 #np.pi/2-float(object_orientation[2])
+                # np.pi/2-float(object_orientation[2])
+                objectEgoCentricRotation_y = 0
 
                 object_scale = [float(i) for i in object_scale]
                 camera_location = [float(i) for i in camera_location]
-                
-                ##print(object_dimensions)
+
+                # print(object_dimensions)
 
                 curr_annotations[annotationID] = {
-                    "object_name" : labels[0],
-                    "rack_number" : labels[1],
-                    "object_type" : object_type,
-                    "shelf_number" : shelf_number,
-                    "object_location" : object_location,
-                    "object_ego_location" : objectEgoCentricLocation,
-                    "ego_rotation_y" : objectEgoCentricRotation_y,
-                    "object_dimensions" : copy.deepcopy(object_dimensions),
-                    "camera_location" : camera_location,
-                    "camera_rotation" : camera_rotation,
-                    "center" : [0,0],
-                    "interShelfDistance" : interShelfDistance
+                    "object_name": labels[0],
+                    "rack_number": labels[1],
+                    "object_type": object_type,
+                    "shelf_number": shelf_number,
+                    "object_location": object_location,
+                    "object_ego_location": objectEgoCentricLocation,
+                    "ego_rotation_y": objectEgoCentricRotation_y,
+                    "object_dimensions": copy.deepcopy(object_dimensions),
+                    "camera_location": camera_location,
+                    "camera_rotation": camera_rotation,
+                    "center": [0, 0],
+                    "interShelfDistance": interShelfDistance
                 }
                 # ##print(curr_annotations[annotationID])
                 # ##print()
                 # if(shelf_number > self.max_shelf_number):
-                    # self.max_shelf_number = shelf_number
+                # self.max_shelf_number = shelf_number
                 annotationID += 1
-            
+
             shelfs_and_boxes = {}
-            min_shelf_number, max_shelf_number = self.get_shelf_range(curr_annotations)
+            min_shelf_number, max_shelf_number = self.get_shelf_range(
+                curr_annotations)
             for shelf_number in range(min_shelf_number, max_shelf_number+1):
-                shelf_and_box_val = self.get_shelf_and_boxes(shelf_number, curr_annotations)
+                shelf_and_box_val = self.get_shelf_and_boxes(
+                    shelf_number, curr_annotations)
                 if(len(shelf_and_box_val) >= 1 and len(shelf_and_box_val[0]) >= 1):
-                    if shelf_and_box_val[0][0] != None: # if the shelf is not visible then do not generate the box
+                    # if the shelf is not visible then do not generate the box
+                    if shelf_and_box_val[0][0] != None:
                         shelfs_and_boxes[shelf_number] = shelf_and_box_val
             # print(shelfs_and_boxes)
-            generateEgoCentricTopLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
-            generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
-            aa, bb, cc, dd, ee, ff)
+            generateEgoCentricTopLayout.writeLayout(
+                ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number)
+            # generateEgoCentricFrontLayout.writeLayout(ID, dump_path, shelfs_and_boxes, min_shelf_number, max_shelf_number,
+            # aa, bb, cc, dd, ee, ff)
             # return
 
     def findObjectExtent(self, annotation):
         dim = annotation["object_dimensions"]
         center = annotation["object_location"]
-        
+
         maxX = center[0] + dim[0] / 2
         minX = center[0] - dim[0] / 2
         maxY = center[1] + dim[1] / 2
@@ -383,12 +392,13 @@ class GenerateLayouts(object):
             minZ = min(minZ, extent[5])
 
             shelf_dim = [maxX - minX, maxY - minY, maxZ - minZ]
-            shelf_center = [minX + shelf_dim[0] / 2, minY + shelf_dim[1] / 2, minZ + shelf_dim[2] / 2]
+            shelf_center = [minX + shelf_dim[0] / 2, minY +
+                            shelf_dim[1] / 2, minZ + shelf_dim[2] / 2]
 
             shelf["object_dimensions"] = shelf_dim
             shelf["object_location"] = shelf_center
-            shelf["object_ego_location"] = self.get_locations(shelf["object_location"], 
-                                                              shelf["camera_location"], 
+            shelf["object_ego_location"] = self.get_locations(shelf["object_location"],
+                                                              shelf["camera_location"],
                                                               shelf["camera_rotation"])
 
             # print("New dimensions", shelf["shelf_number"], shelf["object_dimensions"])
@@ -399,11 +409,10 @@ class GenerateLayouts(object):
             # obj["object_type"] = "Box"
             # boxes.append(obj)
 
-        # print("Here3", shelf[0]["object_dimensions"][0] - shelf_dim[0], 
+        # print("Here3", shelf[0]["object_dimensions"][0] - shelf_dim[0],
         #       shelf[0]["object_dimensions"][1] - shelf_dim[1])
-        # print("Here4", shelf[0]["object_location"][0] - shelf_center[0], 
+        # print("Here4", shelf[0]["object_location"][0] - shelf_center[0],
         #                   shelf[0]["object_location"][1] - shelf_center[1])
-
 
         return [shelves, boxes]
 
@@ -413,14 +422,13 @@ class GenerateLayouts(object):
         if(shelf_1 == None or shelf_2 == None):
             shelfHeightDifference = Constants.MAX_SHELF_DIFF_VAL
         else:
-            bottomShelfAnnotation,_ = self.get_shelf_and_boxes(shelf_1)
-            topShelfAnnotation,_ = self.get_shelf_and_boxes(shelf_2)
+            bottomShelfAnnotation, _ = self.get_shelf_and_boxes(shelf_1)
+            topShelfAnnotation, _ = self.get_shelf_and_boxes(shelf_2)
             heightOfBottomShelf = bottomShelfAnnotation["location"][2]
             heightOftopShelf = topShelfAnnotation["location"][2]
-            shelfHeightDifference = abs(float(heightOftopShelf) - float(heightOfBottomShelf))
+            shelfHeightDifference = abs(
+                float(heightOftopShelf) - float(heightOfBottomShelf))
         return shelfHeightDifference
-
-
 
     def get_shelf_range(self, curr_annotations):
         min_shelf = 99999999
@@ -432,6 +440,7 @@ class GenerateLayouts(object):
                 max_shelf = annotation["shelf_number"]
 
         return [min_shelf, max_shelf]
+
 
 if __name__ == "__main__":
     generatelayouts = GenerateLayouts()
@@ -445,6 +454,6 @@ if __name__ == "__main__":
         filePathManager.anuragEgoCentricLayouts,
         0, 1, 2, 1, 2, 0
     )
-        #     break
-        # break
+    #     break
+    # break
     ##print("Generated Layouts at : ",filePathManager.anuragEgoCentricLayouts)

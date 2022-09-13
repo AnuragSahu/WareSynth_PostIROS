@@ -2,16 +2,17 @@ import os
 import Constants
 import sys
 
+
 class FilePathManager(object):
     def __init__(self):
-        
+
         self.datasetDumpDirectory = "/home/anurag/Research/data/NewLayouts/data_subset/"
         self.datasetDumpDirectory = "/home/tanvi/Desktop/Honors/RRC/data/"
         # self.datasetDumpDirectory = "/home/avinash/Desktop/unity_retail/data/"
         # self.datasetDumpDirectory = "/mnt/New Volume/RRC/data_diverse/"
         self.datasetDumpDirectory = "/Users/vampire/RESEARCH/data/"
-        # self.datasetDumpDirectory = "/home/ashwin/Programming/RRC/Warehouse Project/data_new/"
-        
+        self.datasetDumpDirectory = "/home/ashwin/Programming/RRC/Warehouse Project/data_new/"
+
         self.sceneCaptureNumber = 0
         self.annotationWritingPath = None
         self.dataPointNumber = 0
@@ -25,7 +26,7 @@ class FilePathManager(object):
         self.anuragAnnotationsLabelsPath = self.anuragAnnotationsPath + "Annotations/"
         self.anuragRGBImagesPath = self.anuragAnnotationsPath + "Images/"
         self.anuragEgoCentricLayouts = self.anuragAnnotationsPath + "topLayouts/"
-        self.BoxProbValuesPath = self.anuragRGBImagesPath 
+        self.BoxProbValuesPath = self.anuragRGBImagesPath
         self.anuragLayoutspath = None
         self.anuragLayoutDebugImagespath = self.datasetDumpDirectory + "debugOutputs/"
         self.layoutPath = None
@@ -33,7 +34,6 @@ class FilePathManager(object):
         self.keypointImagesPath = self.datasetDumpDirectory + "keypointImages/"
 
         self.ensureDatasetDirectory()
-
 
     def ensureDatasetDirectory(self):
         try:
@@ -81,7 +81,6 @@ class FilePathManager(object):
                 os.makedirs(self.kittiVelodynePath)
             except FileExistsError:
                 pass
-        
 
     def capturedScene(self):
         self.sceneCaptureNumber += 1
@@ -93,24 +92,28 @@ class FilePathManager(object):
         return self.sceneCaptureNumber
 
     def getAnuragAnnotationsLabelPath(self):
-        labelspath = self.anuragAnnotationsLabelsPath + str(self.sceneCaptureNumber).zfill(6)+".txt"
+        labelspath = self.anuragAnnotationsLabelsPath + \
+            str(self.sceneCaptureNumber).zfill(6)+".txt"
         return labelspath
 
     def getAnuragAnnotationsImagePath(self):
-        imagePath = self.anuragRGBImagesPath + str(self.sceneCaptureNumber).zfill(6)+".png"
+        imagePath = self.anuragRGBImagesPath + \
+            str(self.sceneCaptureNumber).zfill(6)+".png"
         return imagePath
 
     def getBoxLayoutPath(self):
-        layoutPath = self.anuragRGBImagesPath + "box"+str(self.sceneCaptureNumber).zfill(6)+".png"
+        layoutPath = self.anuragRGBImagesPath + "box" + \
+            str(self.sceneCaptureNumber).zfill(6)+".png"
         return layoutPath
 
     def getShelfLayoutPath(self):
-        layoutPath = self.anuragRGBImagesPath + "shelf"+str(self.sceneCaptureNumber).zfill(6)+".png"
+        layoutPath = self.anuragRGBImagesPath + "shelf" + \
+            str(self.sceneCaptureNumber).zfill(6)+".png"
         return layoutPath
 
     def getDebugRackLayoutPath(self, prefix, ID, shelf_number):
         layoutPath = self.anuragLayoutDebugImagespath + prefix +\
-                     str(ID)[:-4].zfill(6) + ("_%s.png"%shelf_number)
+            str(ID)[:-4].zfill(6) + ("_%s.png" % shelf_number)
         return layoutPath
 
     def updateDebugImageNumber(self):
