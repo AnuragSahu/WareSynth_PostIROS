@@ -421,6 +421,9 @@ class GenerateEgoCentricTopLayout(object):
                 filePathManager.updateDebugImageNumber()
             final_layout_racks.append(pixels)
             write_track += 1
+
+            break
+
         empty_pixels = np.zeros(
             (int(self.length/self.res), int(self.width/self.res)))
         for shelf in range(empty_npy):
